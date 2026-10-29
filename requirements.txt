@@ -1,0 +1,2 @@
+# 资产管家只依赖 Python 标准库（http.server / urllib / json / hashlib ...）
+# 不需要安装任何第三方包，此文件仅为满足云平台的 Python 项目识别要求
