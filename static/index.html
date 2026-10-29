@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>资产管家 · 净值 / 回测 / 预测</title>
+<link rel="stylesheet" href="css/app.css" />
+<script src="js/auth.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">A</div>
+    <div class="brand-txt">
+      <b>资产管家</b>
+      <small>净值核算 · 历史回测 · 走势预测</small>
+    </div>
+  </div>
+  <nav class="tabs" id="mainTabs">
+    <button class="tab active" data-tab="worth"><i>①</i>资产负债</button>
+    <button class="tab" data-tab="backtest"><i>②</i>历史回测</button>
+    <button class="tab" data-tab="forecast"><i>③</i>未来预测</button>
+  </nav>
+  <div class="topright">
+    <span class="dot" id="netDot"></span>
+    <span class="topnote" id="netNote">行情源：东方财富</span>
+    <button class="btn ghost sm" id="btnLogout" title="退出登录">退出</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ===================== ① 资产负债 ===================== -->
+  <section class="page active" id="page-worth">
+    <div class="kpis">
+      <div class="kpi">
+        <span class="kpi-label">总资产</span>
+        <span class="kpi-val" id="kTotalAsset">¥0</span>
+        <span class="kpi-sub" id="kAssetCount">0 项</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-label">总负债</span>
+        <span class="kpi-val danger" id="kTotalDebt">¥0</span>
+        <span class="kpi-sub" id="kDebtCount">0 项</span>
+      </div>
+      <div class="kpi hero">
+        <span class="kpi-label">净资产</span>
+        <span class="kpi-val" id="kNetAsset">¥0</span>
+        <span class="kpi-sub">总资产 − 总负债</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-label">资产负债率</span>
+        <span class="kpi-val" id="kDebtRatio">0%</span>
+        <span class="kpi-sub" id="kDebtHealth">—</span>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-hd"><h3>资产结构</h3><span class="hint">按类别占比</span></div>
+        <div id="chartAssetPie" class="chart h300"></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><h3>资产明细占比</h3><span class="hint">内圈类别 · 外圈单项</span></div>
+        <div id="chartAssetSun" class="chart h300"></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-hd"><h3>资产 vs 负债</h3><span class="hint">净资产拆解</span></div>
+        <div id="chartAssetBar" class="chart h280"></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><h3>负债结构</h3><span class="hint">按类别占比</span></div>
+        <div id="chartDebtPie" class="chart h280"></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-hd">
+          <h3>资产明细</h3>
+          <div class="hd-actions">
+            <button class="btn ghost sm" data-add="asset">+ 新增</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="tblAsset">
+            <thead><tr><th style="width:24%">名称</th><th style="width:17%">类别</th><th style="width:20%">金额(¥)</th><th style="width:17%">占总资产</th><th>备注</th><th style="width:44px"></th></tr></thead>
+            <tbody></tbody>
+            <tfoot><tr><td colspan="2">合计</td><td class="num" id="sumAsset">¥0</td><td class="num">100%</td><td colspan="2"></td></tr></tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd">
+          <h3>负债明细</h3>
+          <div class="hd-actions">
+            <button class="btn ghost sm" data-add="debt">+ 新增</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="tblDebt">
+            <thead><tr><th style="width:24%">名称</th><th style="width:17%">类别</th><th style="width:20%">金额(¥)</th><th style="width:17%">占总负债</th><th>备注</th><th style="width:44px"></th></tr></thead>
+            <tbody></tbody>
+            <tfoot><tr><td colspan="2">合计</td><td class="num" id="sumDebt">¥0</td><td class="num">100%</td><td colspan="2"></td></tr></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><h3>数据管理</h3><span class="hint">数据保存在本机浏览器，不会上传</span></div>
+      <div class="row-actions">
+        <button class="btn" id="btnDemo">载入示例数据</button>
+        <button class="btn ghost" id="btnExport">导出 JSON</button>
+        <button class="btn ghost" id="btnImport">导入 JSON</button>
+        <button class="btn ghost" id="btnSendForecast">把净资产送进「未来预测」→</button>
+        <button class="btn danger-ghost" id="btnClear">清空</button>
+        <input type="file" id="fileImport" accept="application/json" hidden />
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== ② 历史回测 ===================== -->
+  <section class="page" id="page-backtest">
+    <div class="bt-layout">
+      <aside class="card side">
+        <div class="card-hd"><h3>资产池</h3><span class="hint" id="selCount">已选 0</span></div>
+        <div class="searchbox">
+          <input type="text" id="assetSearch" placeholder="搜索任意指数 / ETF，如：恒生科技" />
+          <div class="suggest" id="suggestBox"></div>
+        </div>
+        <div class="catalog" id="catalog"></div>
+        <div class="row-actions">
+          <button class="btn ghost sm" id="btnDiag">数据体检</button>
+          <span class="hint">检查各标的可取数与真实起点</span>
+        </div>
+        <div id="diagBox" class="diagbox" hidden></div>
+      </aside>
+
+      <div class="bt-main">
+        <div class="card">
+          <div class="card-hd"><h3>组合配置</h3><span class="hint" id="weightTip">权重合计 0%</span></div>
+          <div id="basket" class="basket"></div>
+          <div class="row-actions wrap-actions">
+            <button class="btn ghost sm" id="btnEqual">平均分配</button>
+            <button class="btn ghost sm" id="btnNorm">归一化 100%</button>
+            <button class="btn ghost sm" id="btnClassic6040">经典 60/40</button>
+            <button class="btn ghost sm" id="btnAllWeather">全天候</button>
+            <button class="btn ghost sm" id="btnClearBasket">清空</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><h3>回测参数</h3></div>
+          <div class="form-grid">
+            <label class="fld">
+              <span>起始资金 (¥)</span>
+              <input type="number" id="btInit" value="100000" step="10000" min="0" />
+            </label>
+            <label class="fld">
+              <span>定投频率</span>
+              <select id="btDcaFreq">
+                <option value="none">不定投</option>
+                <option value="month" selected>每月</option>
+                <option value="quarter">每季</option>
+                <option value="year">每年</option>
+              </select>
+            </label>
+            <label class="fld">
+              <span>每期投入 (¥)</span>
+              <input type="number" id="btDcaAmt" value="2000" step="500" min="0" />
+            </label>
+            <label class="fld">
+              <span>再平衡</span>
+              <select id="btRebal">
+                <option value="none">不调整</option>
+                <option value="year" selected>每年</option>
+                <option value="quarter">每季</option>
+                <option value="month">每月</option>
+              </select>
+            </label>
+            <label class="fld">
+              <span>对比基准</span>
+              <select id="btBench"></select>
+            </label>
+            <label class="fld">
+              <span>数据频率</span>
+              <select id="btPeriod">
+                <option value="day">日线</option>
+                <option value="week">周线</option>
+                <option value="month">月线</option>
+              </select>
+            </label>
+          </div>
+          <div class="ranges">
+            <span class="rlabel">区间</span>
+            <div class="chipset" id="btRanges">
+              <button class="chip" data-y="1">近1年</button>
+              <button class="chip" data-y="3">近3年</button>
+              <button class="chip active" data-y="5">近5年</button>
+              <button class="chip" data-y="10">近10年</button>
+              <button class="chip" data-y="20">近20年</button>
+              <button class="chip" data-y="0">全部</button>
+            </div>
+            <input type="date" id="btStart" />
+            <span class="tilde">→</span>
+            <input type="date" id="btEnd" />
+          </div>
+          <div class="row-actions">
+            <button class="btn primary big" id="btnRunBacktest">开始回测</button>
+            <span class="runstate" id="btState"></span>
+          </div>
+        </div>
+
+        <div class="card" id="btResultCard" hidden>
+          <div class="card-hd"><h3>回测结果</h3><span class="hint" id="btRangeNote"></span></div>
+          <div id="btDataNote"></div>
+          <div class="kpis mini" id="btKpis"></div>
+          <div id="chartBtNav" class="chart h360"></div>
+          <div class="grid2 mt">
+            <div><div class="sub-hd">回撤走势</div><div id="chartBtDd" class="chart h220"></div></div>
+            <div><div class="sub-hd">年度收益率</div><div id="chartBtYear" class="chart h220"></div></div>
+          </div>
+          <div class="sub-hd mt">标的明细</div>
+          <div class="tbl-wrap">
+            <table class="tbl" id="tblBtDetail">
+              <thead><tr><th>标的</th><th>权重</th><th>区间涨幅</th><th>年化</th><th>最大回撤</th><th>波动率</th><th>贡献</th><th>真实数据起点</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="row-actions">
+            <button class="btn ghost" id="btnBtToForecast">把该组合送进「未来预测」→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== ③ 未来预测 ===================== -->
+  <section class="page" id="page-forecast">
+    <div class="kpis">
+      <div class="kpi"><span class="kpi-label">起始本金</span><span class="kpi-val" id="fcStartEcho">¥0</span><span class="kpi-sub">可一键取用净资产</span></div>
+      <div class="kpi"><span class="kpi-label">预测年数</span><span class="kpi-val" id="fcYearsEcho">—</span><span class="kpi-sub" id="fcModeEcho">—</span></div>
+      <div class="kpi hero"><span class="kpi-label">期末资产（中位）</span><span class="kpi-val" id="fcEndEcho">¥0</span><span class="kpi-sub" id="fcGainEcho">—</span></div>
+      <div class="kpi"><span class="kpi-label">累计投入</span><span class="kpi-val" id="fcInvestEcho">¥0</span><span class="kpi-sub" id="fcProfitEcho">—</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">
+        <div class="segmented" id="fcMode">
+          <button class="seg active" data-mode="manual">手动假设（周期不限）</button>
+          <button class="seg" data-mode="machine">机器预测（最多 30 年）</button>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <label class="fld"><span>起始本金 (¥)</span><input type="number" id="fcInit" value="100000" step="10000" min="0" /></label>
+        <label class="fld" id="fcYearsFld"><span>预测年数（不限）</span><input type="number" id="fcYears" value="10" min="1" /></label>
+        <label class="fld"><span>每次投入金额 (¥)</span><input type="number" id="fcAnnual" value="5000" step="1000" min="0" /><small class="fld-hint" id="fcContribHint"></small></label>
+        <label class="fld"><span>投入频率</span>
+          <select id="fcContribMode">
+            <option value="month" selected>每月一次（每年 12 期）</option>
+            <option value="quarter">每季一次（每年 4 期）</option>
+            <option value="year">每年一次（每年 1 期）</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- 手动 -->
+      <div class="mode-pane active" id="pane-manual">
+        <div class="note">
+          手动模式为确定性推演：给每个资产设定<strong>预期年化涨幅</strong>，周期可填任意年数（1–100，超出亦可，无上限约束）。
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="tblManual">
+            <thead><tr><th>资产</th><th style="width:14%">权重 %</th><th style="width:34%">预期年化涨幅 %</th><th style="width:16%">区间示例</th><th style="width:44px"></th></tr></thead>
+            <tbody></tbody>
+            <tfoot><tr><td>合计</td><td class="num" id="mWeightSum">0%</td><td class="num" id="mReturnAvg">—</td><td colspan="2"></td></tr></tfoot>
+          </table>
+        </div>
+        <div class="row-actions wrap-actions">
+          <button class="btn ghost sm" id="btnManualAdd">+ 添加资产</button>
+          <button class="btn ghost sm" id="btnManualFromBasket">沿用回测组合</button>
+          <button class="btn ghost sm" id="btnPresetConservative">预设：保守</button>
+          <button class="btn ghost sm" id="btnPresetBalanced">预设：均衡</button>
+          <button class="btn ghost sm" id="btnPresetAggressive">预设：进取</button>
+        </div>
+        <div class="grid3 mt">
+          <div class="mini-card"><span>乐观情景 (+30% 偏离)</span><b id="mOpt">—</b></div>
+          <div class="mini-card"><span>中性情景（设定值）</span><b id="mBase">—</b></div>
+          <div class="mini-card"><span>悲观情景 (−30% 偏离)</span><b id="mPess">—</b></div>
+        </div>
+      </div>
+
+      <!-- 机器 -->
+      <div class="mode-pane" id="pane-machine">
+        <div class="note">
+          机器模式基于历史行情估算<strong>年化收益率 μ</strong> 与 <strong>波动率 σ</strong>，再做随机路径模拟；预测周期上限 30 年。
+        </div>
+        <div class="form-grid">
+          <label class="fld"><span>预测方法</span>
+            <select id="fcMethod">
+              <option value="gbm">几何布朗运动（蒙特卡洛）</option>
+              <option value="boot" selected>历史自助抽样（Bootstrap）</option>
+              <option value="trend">对数趋势外推 + 波动带</option>
+            </select>
+          </label>
+          <label class="fld"><span>历史样本区间</span>
+            <select id="fcSample">
+              <option value="5">近 5 年</option>
+              <option value="10" selected>近 10 年</option>
+              <option value="20">近 20 年</option>
+              <option value="0">全部历史</option>
+            </select>
+          </label>
+          <label class="fld"><span>模拟次数</span>
+            <select id="fcPaths">
+              <option value="500">500 次</option>
+              <option value="2000" selected>2000 次</option>
+              <option value="5000">5000 次</option>
+            </select>
+          </label>
+          <label class="fld"><span>目标金额 (¥)</span><input type="number" id="fcTarget" value="1000000" step="100000" min="0" /></label>
+        </div>
+        <div class="row-actions wrap-actions">
+          <button class="btn ghost sm" id="btnMachineAdd">+ 添加资产</button>
+          <button class="btn ghost sm" id="btnMachineFromBasket">沿用回测组合</button>
+          <button class="btn ghost sm" id="btnPullStats">拉取历史统计</button>
+          <span class="runstate" id="fcState"></span>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="tblMachine">
+            <thead><tr><th>资产</th><th style="width:12%">权重 %</th><th style="width:16%">年化收益 μ</th><th style="width:14%">波动率 σ</th><th style="width:16%">手动微调 μ(%)</th><th style="width:44px"></th></tr></thead>
+            <tbody></tbody>
+            <tfoot><tr><td>合计</td><td class="num" id="cWeightSum">0%</td><td class="num" id="cReturnAvg">—</td><td class="num" id="cVolAvg">—</td><td colspan="2"></td></tr></tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div class="row-actions">
+        <button class="btn primary big" id="btnRunForecast">运行预测</button>
+        <button class="btn ghost" id="btnUseNetAsset">用净资产作为起始本金</button>
+      </div>
+    </div>
+
+    <div class="card" id="fcResultCard" hidden>
+      <div class="card-hd"><h3>预测结果</h3><span class="hint" id="fcNote"></span></div>
+      <div id="chartForecast" class="chart h380"></div>
+      <div class="grid2 mt">
+        <div><div class="sub-hd">期末资产分布</div><div id="chartFcHist" class="chart h240"></div></div>
+        <div><div class="sub-hd">逐年明细</div><div class="tbl-wrap h240"><table class="tbl" id="tblFcDetail"><thead><tr><th>年份</th><th>累计投入</th><th>资产（中位）</th><th>悲观 P10</th><th>乐观 P90</th><th>累计收益</th></tr></thead><tbody></tbody></table></div></div>
+      </div>
+      <div class="kpis mini mt" id="fcKpis"></div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="vendor/echarts.min.js"></script>
+<script src="js/core.js"></script>
+<script src="js/networth.js"></script>
+<script src="js/backtest.js"></script>
+<script src="js/forecast.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
