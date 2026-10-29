@@ -1,0 +1,15 @@
+# 行情缓存（运行时自动重建）
+data/cache/
+# 日志
+*.log
+server.log
+cpolar.log
+# Python
+__pycache__/
+*.pyc
+*.pyo
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
