@@ -4,6 +4,10 @@ data/cache/
 *.log
 server.log
 cpolar.log
+# 密钥（切勿提交）
+.render_key
+*.token
+.env
 # Python
 __pycache__/
 *.pyc
