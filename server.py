@@ -229,11 +229,14 @@ def snapshot_series(secid):
     if not snap or secid not in (snap.get("series") or {}):
         return None
     s = snap["series"][secid]
-    dates = [_CAL_BASE + datetime.timedelta(days=s["d0"])]
+    # 注意全部转字符串：早期这里第一个日期是 date 对象、其余是 str，
+    # 混在同一个列表里，一旦拿去做 `need_start <= d` 比较就会抛
+    # "'>' not supported between instances of 'datetime.date' and 'str'"
+    dates = [(_CAL_BASE + datetime.timedelta(days=s["d0"])).isoformat()]
     cur = s["d0"]
     for step in s["days"]:
         cur += step
-        dates.append(str(_CAL_BASE + datetime.timedelta(days=cur)))
+        dates.append((_CAL_BASE + datetime.timedelta(days=cur)).isoformat())
     return {"secid": secid, "name": s["name"], "dates": dates, "close": s["close"]}
 
 
