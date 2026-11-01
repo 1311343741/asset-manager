@@ -43,7 +43,7 @@ def build(force=False):
     }
 
     def pack(secid, name, group):
-        s = fetch_kline(secid, 101, force=force, retry=6)   # 批量任务不急，多试几次
+        s = fetch_kline(secid, 101, force=force, retry=2)   # 批量任务不急，多试几次
         d, c = slice_series(s, norm_date(START.replace("-", "")), norm_date(END.replace("-", "")))
         if len(d) < 60:
             raise RuntimeError("数据点过少: %d" % len(d))
@@ -72,7 +72,7 @@ def build(force=False):
             print("[%2d/%d] FAIL %-26s %s" % (i, len(items), name, e))
 
     # 多轮补拉：东财会限流，失败项隔一段时间再试
-    for rnd in range(1, 5):
+    for rnd in range(1, 2):
         if not pending:
             break
         print("\n-- 第 %d 轮补拉，剩余 %d 项，等待 20 秒 --" % (rnd, len(pending)))
@@ -90,8 +90,12 @@ def build(force=False):
     out["failed"] = [{"secid": s, "name": n, "error": "多次重试仍未取到"} for (s, n, g) in pending]
 
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    with open(OUT, "w", encoding="utf-8") as f:
+    # 原子替换：直接写目标文件时，若服务正在读它（或另一个实例并发写），
+    # Windows 会抛 PermissionError，导致跑了十几分钟却一个字节都没落盘。
+    tmp = OUT + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
+    os.replace(tmp, OUT)
     size = os.path.getsize(OUT) / 1024.0
     print("\n完成：%s（%.0f KB），成功 %d / 失败 %d"
           % (OUT, size, len(out["series"]), len(out["failed"])))
