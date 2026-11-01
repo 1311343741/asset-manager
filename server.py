@@ -227,16 +227,24 @@ def fetch_kline(secid, klt=101, force=False, retry=3):
         except Exception:
             alt = None
         if alt and alt.get("close"):
-            # 备用源一般只给最近约 3 年，绝不能让它覆盖掉已有的更长历史：
-            # 否则宽基指数会从几十年退化成 3 年，长周期回测直接塌掉。
-            # 宁可用「过期但更长」的旧缓存，也不要「新鲜但很短」的备用源数据。
-            if stale and len(stale.get("dates") or []) > len(alt["dates"]):
-                stale["staleServed"] = int(time.time())
-                _write_cache(secid, klt, stale)
-                return stale
-            alt["via"] = "backup"        # 标记来源，便于排查
-            _write_cache(secid, klt, alt)
-            return alt
+            # 备用源一般只给最近约 3 年。这里必须在「备用源 / 快照 / 旧缓存」三者里
+            # 选最长的那份：否则宽基指数会退化成 3 年，连带所有板块都失去向前回溯
+            # 所用的日历，长周期回测直接塌掉。
+            best = alt
+            try:
+                snap_s = snapshot_series(secid)
+                if snap_s and len(snap_s.get("dates") or []) > len(best["dates"]):
+                    best = snap_s
+                    best["via"] = "snapshot"
+            except Exception:
+                pass
+            if stale and len(stale.get("dates") or []) > len(best["dates"]):
+                best = stale
+                best["staleServed"] = int(time.time())
+            if best is alt:
+                alt["via"] = "backup"    # 标记来源，便于排查
+            _write_cache(secid, klt, best)
+            return best
         if stale and stale.get("close"):
             # 取数失败但有过旧缓存：先顶上，并刷新 mtime，
             # 否则每次请求都会重新去撞限流，用户一直干等。
