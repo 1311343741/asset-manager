@@ -1,0 +1,98 @@
+[ 1/70] OK   沪深300                      2006-01-04 ~ 2026-10-30  5057 点
+[ 2/70] OK   中证A500                     2006-01-04 ~ 2026-10-30  5057 点
+[ 3/70] OK   中证A50                      2014-12-31 ~ 2026-10-28  2871 点
+[ 4/70] OK   上证50                       2006-01-04 ~ 2026-10-28  5055 点
+[ 5/70] OK   中证500                      2006-01-04 ~ 2026-10-28  5055 点
+[ 6/70] OK   中证1000                     2006-01-04 ~ 2026-10-27  5054 点
+[ 7/70] OK   创业板指                       2010-06-01 ~ 2026-10-28  3983 点
+[ 8/70] OK   科创50                       2019-12-31 ~ 2026-10-28  1652 点
+[ 9/70] OK   深证成指                       2006-01-04 ~ 2026-10-28  5055 点
+[10/70] OK   北证50                       2022-04-29 ~ 2026-10-28  1089 点
+[11/70] FAIL 沪深300ETF（华泰柏瑞）             上游请求失败: Remote end closed connection without response
+[12/70] FAIL 中证500ETF（南方）               上游请求失败: Remote end closed connection without response
+[13/70] FAIL 上证50ETF（华夏）                上游请求失败: Remote end closed connection without response
+[14/70] FAIL 中证1000ETF（南方）              上游请求失败: Remote end closed connection without response
+[15/70] FAIL 科创50ETF（华夏）                上游请求失败: Remote end closed connection without response
+[16/70] FAIL 中证2000ETF（华泰柏瑞）            上游请求失败: Remote end closed connection without response
+[17/70] FAIL 创业板ETF（易方达）                上游请求失败: Remote end closed connection without response
+[18/70] FAIL 创业板50ETF（华安）               上游请求失败: Remote end closed connection without response
+[19/70] OK   中证红利                       2008-08-04 ~ 2026-10-28  4428 点
+[20/70] OK   上证红利                       2006-01-04 ~ 2026-10-27  5054 点
+[21/70] OK   红利ETF（华泰柏瑞）                2007-01-18 ~ 2026-10-28  4763 点
+[22/70] OK   红利低波ETF（华泰柏瑞）              2019-01-18 ~ 2026-10-28  1882 点
+[23/70] OK   半导体ETF（国联安）                2019-06-12 ~ 2026-10-30  1791 点
+[24/70] OK   芯片ETF（国泰）                  2019-06-12 ~ 2026-10-30  1791 点
+[25/70] OK   计算机ETF（国泰）                 2019-08-16 ~ 2026-10-30  1745 点
+[26/70] OK   通信ETF（国泰）                  2019-09-06 ~ 2026-10-30  1730 点
+[27/70] OK   游戏ETF（国泰）                  2021-03-05 ~ 2026-10-30  1371 点
+[28/70] OK   科创芯片ETF（嘉实）                2022-10-26 ~ 2026-10-30  973 点
+[29/70] OK   医疗ETF（华宝）                  2019-06-17 ~ 2026-10-30  1788 点
+[30/70] OK   医药ETF（易方达）                 2013-10-28 ~ 2026-10-30  3162 点
+[31/70] OK   创新药ETF（银华）                 2020-04-10 ~ 2026-10-30  1589 点
+[32/70] OK   酒ETF（鹏华）                   2019-05-06 ~ 2026-10-30  1817 点
+[33/70] OK   消费ETF（汇添富）                 2013-09-16 ~ 2026-10-30  3187 点
+[34/70] OK   家电ETF（国泰）                  2020-03-16 ~ 2026-10-30  1607 点
+[35/70] OK   有色金属ETF（南方）                2017-09-01 ~ 2026-10-30  2221 点
+[36/70] OK   煤炭ETF（国泰）                  2020-03-02 ~ 2026-10-30  1617 点
+[37/70] OK   钢铁ETF（国泰）                  2020-03-02 ~ 2026-10-30  1617 点
+[38/70] OK   农业ETF（富国）                  2020-12-29 ~ 2026-10-30  1413 点
+[39/70] OK   新能源ETF（南方）                 2021-02-04 ~ 2026-10-30  1387 点
+[40/70] OK   光伏ETF（华泰柏瑞）                2020-12-18 ~ 2026-10-30  1420 点
+[41/70] OK   电池ETF（广发）                  2021-06-24 ~ 2026-10-30  1297 点
+[42/70] FAIL 证券ETF（国泰）                  上游请求失败: Remote end closed connection without response
+[43/70] FAIL 银行ETF（华宝）                  上游请求失败: Remote end closed connection without response
+[44/70] FAIL 券商ETF（华宝）                  上游请求失败: Remote end closed connection without response
+[45/70] FAIL 房地产ETF（南方）                 上游请求失败: Remote end closed connection without response
+[46/70] FAIL 基建ETF（银华）                  上游请求失败: Remote end closed connection without response
+[47/70] FAIL 军工ETF（国泰）                  上游请求失败: Remote end closed connection without response
+[48/70] FAIL 传媒ETF（广发）                  上游请求失败: Remote end closed connection without response
+[49/70] FAIL 环保ETF（广发）                  上游请求失败: Remote end closed connection without response
+[50/70] OK   恒生指数                       2006-01-03 ~ 2026-10-28  5127 点
+[51/70] OK   恒生科技指数                     2014-12-31 ~ 2026-10-28  2909 点
+[52/70] OK   恒生国企指数                     2006-01-03 ~ 2026-10-28  5128 点
+[53/70] OK   恒生高股息率指数                   2007-06-29 ~ 2026-10-28  4751 点
+[54/70] OK   中概互联网ETF（易方达）              2017-01-18 ~ 2026-10-30  2373 点
+[55/70] OK   恒生科技ETF（华夏）                2021-05-25 ~ 2026-10-30  1318 点
+[56/70] FAIL 恒生科技ETF（华泰柏瑞）              上游请求失败: Remote end closed connection without response
+[57/70] FAIL 恒生互联网ETF（华夏）               上游请求失败: Remote end closed connection without response
+[58/70] FAIL 恒生医疗ETF（博时）                上游请求失败: Remote end closed connection without response
+[59/70] FAIL 恒生消费ETF（景顺）                上游请求失败: Remote end closed connection without response
+[60/70] OK   纳斯达克100                    2019-04-08 ~ 2026-10-27  1900 点
+[61/70] OK   纳斯达克综合指数                   2006-01-03 ~ 2026-10-30  5237 点
+[62/70] OK   标普500                      2006-01-03 ~ 2026-10-27  5242 点
+[63/70] OK   道琼斯工业指数                    2006-01-02 ~ 2026-10-26  5239 点
+[64/70] OK   伦敦金（美元/盎司）                 2006-01-03 ~ 2026-10-28  5416 点
+[65/70] OK   COMEX黄金                    2006-01-03 ~ 2026-10-27  5341 点
+[66/70] OK   黄金ETF（人民币计价）               2013-07-29 ~ 2026-10-28  3220 点
+[67/70] OK   伦敦银（美元/盎司）                 2006-01-02 ~ 2026-10-27  5413 点
+[68/70] OK   NYMEX原油                    2006-01-03 ~ 2026-10-28  5327 点
+[69/70] OK   十年国债ETF                    2017-08-24 ~ 2026-10-28  2224 点
+[70/70] OK   30年国债ETF                   2023-06-13 ~ 2026-10-27  816 点
+
+-- 第 1 轮补拉，剩余 20 项，等待 20 秒 --
+   FAIL 沪深300ETF（华泰柏瑞）             上游请求失败: Remote end closed connection without response
+   FAIL 中证500ETF（南方）               上游请求失败: Remote end closed connection without response
+   FAIL 上证50ETF（华夏）                上游请求失败: Remote end closed connection without response
+   FAIL 中证1000ETF（南方）              上游请求失败: Remote end closed connection without response
+   FAIL 科创50ETF（华夏）                上游请求失败: Remote end closed connection without response
+   FAIL 中证2000ETF（华泰柏瑞）            上游请求失败: Remote end closed connection without response
+   FAIL 创业板ETF（易方达）                上游请求失败: Remote end closed connection without response
+   FAIL 创业板50ETF（华安）               上游请求失败: Remote end closed connection without response
+   FAIL 证券ETF（国泰）                  上游请求失败: Remote end closed connection without response
+   FAIL 银行ETF（华宝）                  上游请求失败: Remote end closed connection without response
+   FAIL 券商ETF（华宝）                  上游请求失败: Remote end closed connection without response
+   FAIL 房地产ETF（南方）                 上游请求失败: Remote end closed connection without response
+   FAIL 基建ETF（银华）                  上游请求失败: Remote end closed connection without response
+   FAIL 军工ETF（国泰）                  上游请求失败: Remote end closed connection without response
+   FAIL 传媒ETF（广发）                  上游请求失败: Remote end closed connection without response
+   FAIL 环保ETF（广发）                  上游请求失败: Remote end closed connection without response
+   FAIL 恒生科技ETF（华泰柏瑞）              上游请求失败: Remote end closed connection without response
+   FAIL 恒生互联网ETF（华夏）               上游请求失败: Remote end closed connection without response
+   FAIL 恒生医疗ETF（博时）                上游请求失败: Remote end closed connection without response
+   FAIL 恒生消费ETF（景顺）                上游请求失败: Remote end closed connection without response
+
+-- 第 2 轮补拉，剩余 20 项，等待 20 秒 --
+   FAIL 沪深300ETF（华泰柏瑞）             上游请求失败: Remote end closed connection without response
+   FAIL 中证500ETF（南方）               上游请求失败: Remote end closed connection without response
+   FAIL 上证50ETF（华夏）                上游请求失败: Remote end closed connection without response
+   FAIL 中证1000ETF（南方）              上游请求失败: Remote end closed connection without response
