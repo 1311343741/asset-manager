@@ -59,7 +59,10 @@ KLT = {"day": 101, "week": 102, "month": 103}
 # ---------------------------------------------------------------- 网络层
 _net_lock = threading.Lock()
 _last_req = [0.0]
-MIN_GAP = 0.35          # 全局最小请求间隔，规避风控
+# 全局最小请求间隔，规避风控。
+# 0.35 在标的少时够用；目录扩到 70+ 个后，预热会持续占线，
+# 新增标的实时拉取被挤掉并降级成"整段代理"（表现为回测拿到的是指数走势而非板块本身）。
+MIN_GAP = 1.0
 
 
 def _throttle():
@@ -750,12 +753,12 @@ def warmup(rounds=2):
                     while time.time() - _last_user_req[0] < 8:
                         time.sleep(2)
                     try:
-                        s = fetch_kline(sid, 101, retry=2)
+                        s = fetch_kline(sid, 101, retry=4)
                         if not s.get("close"):
                             todo.append(sid)
                     except Exception:
                         todo.append(sid)
-                    time.sleep(1.2)
+                    time.sleep(2.5)
                 ids = todo
                 if not ids:
                     break
