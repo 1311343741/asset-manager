@@ -445,11 +445,25 @@ window.Forecast = (function () {
       });
     }
 
+    const rawFinals = finals.slice();      // 排序前，与 tracks 一一对应
     finals.sort((a, b) => a - b);
     const investedTotal = yearly.length ? yearly[yearly.length - 1].invested : init;
 
+    // 挑一条真实模拟路径（期末值最接近中位数的那条）作为「实际预测线」。
+    // 它带逐年真实波动，不像分位数曲线那样被平滑掉。
+    let sample = null;
+    if (tracks.length) {
+      const mid = A.quantile(finals, 0.5);
+      let bi = 0, bd = Infinity;
+      for (let i = 0; i < rawFinals.length; i++) {
+        const d = Math.abs(rawFinals[i] - mid);
+        if (d < bd) { bd = d; bi = i; }
+      }
+      sample = [init].concat(tracks[bi].map(s => +s.value.toFixed(0)));
+    }
+
     return {
-      yearly, finals, mu, sigma, N,
+      yearly, finals, mu, sigma, N, sample,
       investedTotal,
       p50: A.quantile(finals, 0.5),
       p10: A.quantile(finals, 0.1),
@@ -585,6 +599,15 @@ window.Forecast = (function () {
         lineStyle: { width: 2.6, color: '#2563eb' },
         data: pre(d => +d.p50.toFixed(0)),
       });
+      // 实际预测线：一条含真实波动的模拟路径，与平滑的中位数对照
+      if (res.sample && res.sample.length > 1) {
+        series.push({
+          name: '实际预测线（含波动）', type: 'line', showSymbol: false, z: 5,
+          lineStyle: { width: 1.8, color: '#e5484d' },
+          itemStyle: { color: '#e5484d' },
+          data: res.sample,
+        });
+      }
     }
 
     A.chart('chartForecast', {
