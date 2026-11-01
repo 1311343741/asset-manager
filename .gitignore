@@ -17,3 +17,7 @@ __pycache__/
 .idea/
 .DS_Store
 Thumbs.db
+
+# 构建产物
+tools/snapshot*.out
+tools/probe_*
