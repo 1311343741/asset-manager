@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""核对线上（Render）提供的文件是否已包含本次改动。"""
+"""核对线上（Render）文件是否已包含各项改动。"""
 import json
 import sys
 import urllib.error
@@ -30,6 +30,24 @@ def req(path, method='GET', body=None, cookie=None, timeout=120):
         return e.code, dict(e.headers), e.read().decode('utf-8', 'ignore')
 
 
+CHECKS = [
+    # 回测界面（上一轮）
+    ('/', '最大涨幅'),
+    ('/js/backtest.js', 'colorOf'),
+    ('/js/backtest.js', 'maxGain'),
+    ('/js/backtest.js', "name: '百分位'"),
+    ('/js/backtest.js', "name: '日期'"),
+    ('/css/app.css', '.wnum'),
+    # 本轮：手机适配 / 定投置灰 / 实际预测线
+    ('/css/app.css', 'max-width:760px'),
+    ('/css/app.css', 'disabled-input'),
+    ('/js/backtest.js', 'syncDca'),
+    ('/', 'dcaHint'),
+    ('/js/forecast.js', '实际预测线'),
+    ('/js/forecast.js', 'rawFinals'),
+]
+
+
 def main():
     st, hd, bd = req('/api/login', 'POST', {'user': 'admin', 'pass': '12345678'})
     print('登录:', st)
@@ -37,22 +55,14 @@ def main():
         sys.exit('登录失败')
     cookie = (hd.get('Set-Cookie') or '').split(';')[0]
 
-    checks = [
-        ('/', '最大涨幅'),
-        ('/', 'wnum'),
-        ('/js/backtest.js', 'colorOf'),
-        ('/js/backtest.js', 'maxGain'),
-        ('/js/backtest.js', "name: '百分位'"),
-        ('/js/backtest.js', "name: '日期'"),
-        ('/css/app.css', '.wnum'),
-    ]
-    ok = True
-    for path, kw in checks:
+    bad = []
+    for path, kw in CHECKS:
         st, hd, bd = req(path, cookie=cookie, timeout=120)
         hit = kw in bd
-        ok = ok and hit
-        print('  %-18s HTTP %d  含「%s」: %s' % (path, st, kw, hit))
-    print('\n线上核对:', '全部生效' if ok else '仍有未生效项')
+        if not hit:
+            bad.append((path, kw))
+        print('  %-20s 含「%s」: %s' % (path, kw, hit))
+    print('\n线上核对:', '全部生效' if not bad else '未生效: %s' % bad)
 
 
 if __name__ == '__main__':
