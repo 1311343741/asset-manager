@@ -196,6 +196,10 @@ input[type=range]{width:100%;accent-color:var(--brand)}
   font-variant-numeric:tabular-nums}
 .brow .wnum:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-soft)}
 .brow .wval{min-width:52px;text-align:right;font-variant-numeric:tabular-nums;font-size:13px}
+
+/* 定投频率选「不定投」时，每期金额置灰不可编辑 */
+input.disabled-input{opacity:.45;background:#f1f4f9;cursor:not-allowed}
+.fld-hint{display:block;margin-top:4px;font-size:11px;color:var(--muted);line-height:1.4}
 .empty-note{color:var(--muted);font-size:13px;padding:14px;text-align:center;border:1px dashed var(--line-strong);border-radius:10px}
 
 /* ---------- forecast ---------- */
@@ -244,3 +248,45 @@ input[type=range]{width:100%;accent-color:var(--brand)}
   opacity:0;pointer-events:none;transition:.25s;z-index:200;box-shadow:0 8px 26px rgba(0,0,0,.24);
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---------- 手机适配 ---------- */
+@media(max-width:760px){
+  .wrap{padding:14px 12px 48px}
+  .card{padding:12px;border-radius:10px}
+
+  /* 顶部标签栏横向滚动，避免挤成一团 */
+  .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
+  .tab{white-space:nowrap;padding:8px 12px;font-size:13px}
+
+  /* 表单全部单列 */
+  .form-grid{grid-template-columns:1fr !important}
+
+  /* KPI 手机上两列即可，再多数字就挤没了 */
+  .kpis{grid-template-columns:repeat(2,1fr);gap:10px}
+  .kpis.mini{grid-template-columns:repeat(2,1fr)}
+  .kpi{padding:10px 12px}
+  .kpi-val{font-size:20px}
+  .kpis.mini .kpi-val{font-size:15px}
+
+  .bt-layout{grid-template-columns:1fr;gap:12px}
+
+  /* iOS 上输入框字号小于 16px 会在聚焦时自动放大整页，这里统一顶到 16 */
+  input,select,textarea{font-size:16px !important}
+
+  .btn{min-height:38px}
+  .row-actions{flex-wrap:wrap}
+  .row-actions .btn{flex:1 1 140px}
+
+  /* 表格在手机上横向滚动，不换行挤压 */
+  .tbl-wrap{max-height:none;-webkit-overflow-scrolling:touch}
+  .tbl{font-size:12px}
+  .tbl th,.tbl td{padding:7px 8px;white-space:nowrap}
+
+  /* 图表在窄屏上适当降低高度 */
+  .h380{height:300px}.h360{height:280px}.h300{height:250px}
+  .h280{height:240px}.h240{height:210px}.h220{height:200px}
+
+  .brow .wcell{gap:6px}
+  .brow .wnum{min-width:58px}
+  .catalog{max-height:none !important}
+}
