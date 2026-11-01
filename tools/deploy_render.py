@@ -36,6 +36,14 @@ def http(method, url, token, body=None, label='render'):
             return e.code, {'raw': raw.decode('utf-8', 'ignore')[:400]}
 
 
+def abs_url(u):
+    """Render 有时返回 asset-manager.onrender.com，有时已带协议，别拼出 https://https://"""
+    u = (u or '').strip()
+    if not u:
+        return ''
+    return u if u.startswith('http') else 'https://' + u
+
+
 def main():
     rkey = sys.argv[1] if len(sys.argv) > 1 else ''
     repo = sys.argv[2] if len(sys.argv) > 2 else ''
@@ -100,7 +108,7 @@ def main():
         or (svc.get('service') or svc).get('url') or ''
     print('服务已创建: %s (id=%s)' % (sname, sid))
     if url:
-        print('网址: https://%s' % url)
+        print('网址: %s' % abs_url(url))
 
     # 4) 跟踪首次部署
     print('\n等待首次部署…')
@@ -128,7 +136,7 @@ def main():
         s = svc2.get('service') or svc2
         url2 = s.get('serviceDetails', {}).get('url') or s.get('url') or url
         print('\n=== 公网网址 ===')
-        print('https://%s' % url2)
+        print(abs_url(url2))
 
 
 if __name__ == '__main__':
