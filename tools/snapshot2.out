@@ -96,3 +96,71 @@
    FAIL 中证500ETF（南方）               上游请求失败: Remote end closed connection without response
    FAIL 上证50ETF（华夏）                上游请求失败: Remote end closed connection without response
    FAIL 中证1000ETF（南方）              上游请求失败: Remote end closed connection without response
+   FAIL 科创50ETF（华夏）                上游请求失败: Remote end closed connection without response
+   FAIL 中证2000ETF（华泰柏瑞）            上游请求失败: Remote end closed connection without response
+   FAIL 创业板ETF（易方达）                上游请求失败: Remote end closed connection without response
+   FAIL 创业板50ETF（华安）               上游请求失败: Remote end closed connection without response
+   FAIL 证券ETF（国泰）                  上游请求失败: Remote end closed connection without response
+   FAIL 银行ETF（华宝）                  上游请求失败: Remote end closed connection without response
+   FAIL 券商ETF（华宝）                  上游请求失败: Remote end closed connection without response
+   FAIL 房地产ETF（南方）                 上游请求失败: Remote end closed connection without response
+   FAIL 基建ETF（银华）                  上游请求失败: Remote end closed connection without response
+   FAIL 军工ETF（国泰）                  上游请求失败: Remote end closed connection without response
+   FAIL 传媒ETF（广发）                  上游请求失败: Remote end closed connection without response
+   FAIL 环保ETF（广发）                  上游请求失败: Remote end closed connection without response
+   FAIL 恒生科技ETF（华泰柏瑞）              上游请求失败: Remote end closed connection without response
+   FAIL 恒生互联网ETF（华夏）               上游请求失败: Remote end closed connection without response
+   FAIL 恒生医疗ETF（博时）                上游请求失败: Remote end closed connection without response
+   FAIL 恒生消费ETF（景顺）                上游请求失败: Remote end closed connection without response
+
+-- 第 3 轮补拉，剩余 20 项，等待 20 秒 --
+   FAIL 沪深300ETF（华泰柏瑞）             上游请求失败: Remote end closed connection without response
+   FAIL 中证500ETF（南方）               上游请求失败: Remote end closed connection without response
+   FAIL 上证50ETF（华夏）                上游请求失败: Remote end closed connection without response
+   FAIL 中证1000ETF（南方）              上游请求失败: Remote end closed connection without response
+   FAIL 科创50ETF（华夏）                上游请求失败: Remote end closed connection without response
+   FAIL 中证2000ETF（华泰柏瑞）            上游请求失败: Remote end closed connection without response
+   FAIL 创业板ETF（易方达）                上游请求失败: Remote end closed connection without response
+   FAIL 创业板50ETF（华安）               上游请求失败: Remote end closed connection without response
+   FAIL 证券ETF（国泰）                  上游请求失败: Remote end closed connection without response
+   FAIL 银行ETF（华宝）                  上游请求失败: Remote end closed connection without response
+   FAIL 券商ETF（华宝）                  上游请求失败: Remote end closed connection without response
+   FAIL 房地产ETF（南方）                 上游请求失败: Remote end closed connection without response
+   FAIL 基建ETF（银华）                  上游请求失败: Remote end closed connection without response
+   FAIL 军工ETF（国泰）                  上游请求失败: Remote end closed connection without response
+   FAIL 传媒ETF（广发）                  上游请求失败: Remote end closed connection without response
+   FAIL 环保ETF（广发）                  上游请求失败: Remote end closed connection without response
+   FAIL 恒生科技ETF（华泰柏瑞）              上游请求失败: Remote end closed connection without response
+   FAIL 恒生互联网ETF（华夏）               上游请求失败: Remote end closed connection without response
+   FAIL 恒生医疗ETF（博时）                上游请求失败: Remote end closed connection without response
+   FAIL 恒生消费ETF（景顺）                上游请求失败: Remote end closed connection without response
+
+-- 第 4 轮补拉，剩余 20 项，等待 20 秒 --
+   FAIL 沪深300ETF（华泰柏瑞）             上游请求失败: Remote end closed connection without response
+   FAIL 中证500ETF（南方）               上游请求失败: Remote end closed connection without response
+   FAIL 上证50ETF（华夏）                上游请求失败: Remote end closed connection without response
+   FAIL 中证1000ETF（南方）              上游请求失败: Remote end closed connection without response
+   FAIL 科创50ETF（华夏）                上游请求失败: Remote end closed connection without response
+   FAIL 中证2000ETF（华泰柏瑞）            上游请求失败: Remote end closed connection without response
+   FAIL 创业板ETF（易方达）                上游请求失败: Remote end closed connection without response
+   FAIL 创业板50ETF（华安）               上游请求失败: Remote end closed connection without response
+   FAIL 证券ETF（国泰）                  上游请求失败: Remote end closed connection without response
+   FAIL 银行ETF（华宝）                  上游请求失败: Remote end closed connection without response
+   FAIL 券商ETF（华宝）                  上游请求失败: Remote end closed connection without response
+   FAIL 房地产ETF（南方）                 上游请求失败: Remote end closed connection without response
+   FAIL 基建ETF（银华）                  上游请求失败: Remote end closed connection without response
+   FAIL 军工ETF（国泰）                  上游请求失败: Remote end closed connection without response
+   FAIL 传媒ETF（广发）                  上游请求失败: Remote end closed connection without response
+   FAIL 环保ETF（广发）                  上游请求失败: Remote end closed connection without response
+   FAIL 恒生科技ETF（华泰柏瑞）              上游请求失败: Remote end closed connection without response
+   FAIL 恒生互联网ETF（华夏）               上游请求失败: Remote end closed connection without response
+   FAIL 恒生医疗ETF（博时）                上游请求失败: Remote end closed connection without response
+   FAIL 恒生消费ETF（景顺）                上游请求失败: Remote end closed connection without response
+Traceback (most recent call last):
+  File "C:\Users\焦子原\WorkBuddy\2026-10-27-10-15-56\asset-manager\tools\build_snapshot.py", line 104, in <module>
+    build(force=a.force)
+    ~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\焦子原\WorkBuddy\2026-10-27-10-15-56\asset-manager\tools\build_snapshot.py", line 93, in build
+    with open(OUT, "w", encoding="utf-8") as f:
+         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: 'C:\\Users\\焦子原\\WorkBuddy\\2026-10-27-10-15-56\\asset-manager\\static\\data\\snapshot.json'
