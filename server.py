@@ -122,10 +122,91 @@ def _write_cache(secid, klt, payload):
         pass
 
 
+# ---------------------------------------------- 备用行情源
+def _alt_symbol(secid):
+    """东财 secid -> 腾讯/新浪代码。仅沪深 A 股/ETF 可映射，其余返回 None。"""
+    market, _, code = secid.partition('.')
+    if code.isdigit():
+        if market == '1':
+            return 'sh' + code
+        if market == '0':
+            return 'sz' + code
+    return None
+
+
+def _cat_name(secid):
+    for _g in CATALOG:
+        for _it in _g.get('items') or []:
+            if _it.get('secid') == secid:
+                return _it.get('name') or secid
+    return secid
+
+
+def _fetch_tencent(secid, klt=101):
+    """腾讯财经日线。字段不统一：有的标的给 qfqday（前复权），有的只有 day。"""
+    sym = _alt_symbol(secid)
+    if not sym or klt != 101:
+        return None
+    url = ('https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?'
+           'param=%s,day,,,800,qfq' % sym)
+    try:
+        data = fetch_json(url, retry=2, timeout=25)
+    except Exception:
+        return None
+    node = ((data.get('data') or {}).get(sym) or {})
+    rows = node.get('qfqday') or node.get('day') or []
+    dates, close = [], []
+    for r in rows:
+        if len(r) < 3:
+            continue
+        try:
+            v = float(r[2])                 # [日期, 开, 收, 高, 低, 量]
+        except (ValueError, TypeError):
+            continue
+        if v > 0:
+            dates.append(str(r[0])[:10])
+            close.append(v)
+    if len(dates) < 60:
+        return None
+    return {'secid': secid, 'name': _cat_name(secid),
+            'dates': dates, 'close': close}
+
+
+def _fetch_sina(secid, klt=101):
+    """新浪财经日线（腾讯之后的第二备用）。"""
+    sym = _alt_symbol(secid)
+    if not sym or klt != 101:
+        return None
+    url = ('https://quotes.sina.cn/cn/api/json_v2.php/CN_MarketDataService.getKLineData?'
+           'symbol=%s&scale=240&ma=no&datalen=800' % sym)
+    try:
+        data = fetch_json(url, retry=2, timeout=25)
+    except Exception:
+        return None
+    rows = data if isinstance(data, list) else []
+    dates, close = [], []
+    for r in rows:
+        if not isinstance(r, dict):
+            continue
+        try:
+            v = float(r.get('close'))
+        except (ValueError, TypeError):
+            continue
+        if v > 0:
+            dates.append(str(r.get('day'))[:10])
+            close.append(v)
+    if len(dates) < 60:
+        return None
+    return {'secid': secid, 'name': _cat_name(secid),
+            'dates': dates, 'close': close}
+
+
 def fetch_kline(secid, klt=101, force=False, retry=3):
     """
     拉取全量历史 K 线（收盘价序列），带磁盘缓存。
     网络失败时降级到「过期缓存」——避免缓存刚过期就遇上东财限流，导致用户干等重试。
+    东财对本机 IP 限流较狠（整套目录拉下来会持续断连），
+    因此失败后先改走腾讯 / 新浪备用源，再退回过期缓存。
     """
     if not force:
         c = _read_cache(secid, klt)
@@ -138,6 +219,17 @@ def fetch_kline(secid, klt=101, force=False, retry=3):
     try:
         data = fetch_json(url, retry=retry)
     except Exception:
+        # 东财限流时改走备用源（腾讯 -> 新浪）。两者都是国内源，
+        # 对本机而言不受东财那套风控影响，能救回一批一直取不到的板块 ETF。
+        alt = None
+        try:
+            alt = _fetch_tencent(secid, klt) or _fetch_sina(secid, klt)
+        except Exception:
+            alt = None
+        if alt and alt.get("close"):
+            alt["via"] = "backup"        # 标记来源，便于排查
+            _write_cache(secid, klt, alt)
+            return alt
         if stale and stale.get("close"):
             # 取数失败但有过旧缓存：先顶上，并刷新 mtime，
             # 否则每次请求都会重新去撞限流，用户一直干等。
