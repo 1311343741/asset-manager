@@ -1,0 +1,101 @@
+
+【A股 · 宽基指数】
+   沪深300                      真实             800点  起点 2023-07-12
+   中证A500                     真实             508点  起点 2024-09-23
+   中证A50                      快照            2426点  起点 2014-12-31
+   上证50                       真实             800点  起点 2023-07-12
+   中证500                      真实             800点  起点 2023-07-12
+   中证1000                     真实             800点  起点 2023-07-12
+   创业板指                       真实             800点  起点 2023-07-12
+   科创50                       真实             800点  起点 2023-07-12
+   深证成指                       真实            2428点  起点 1991-04-03
+   北证50                       真实            1091点  起点 2022-04-29
+
+【A股 · 宽基ETF】
+   沪深300ETF（华泰柏瑞）             真实             800点  起点 2023-07-12
+   中证500ETF（南方）               真实             800点  起点 2023-07-12
+   上证50ETF（华夏）                真实             800点  起点 2023-07-12
+   中证1000ETF（南方）              真实             800点  起点 2023-07-12
+   科创50ETF（华夏）                真实             800点  起点 2023-07-12
+   中证2000ETF（华泰柏瑞）            真实+补全          800点  起点 2023-09-14
+   创业板ETF（易方达）                真实             800点  起点 2023-07-12
+   创业板50ETF（华安）               真实             800点  起点 2023-07-12
+
+【A股 · 红利/策略】
+   中证红利                       真实             800点  起点 2023-07-12
+   上证红利                       真实             800点  起点 2023-07-12
+   红利ETF（华泰柏瑞）                真实             800点  起点 2023-07-12
+   红利低波ETF（华泰柏瑞）              真实             800点  起点 2023-07-12
+
+【A股 · 科技ETF】
+   半导体ETF（国联安）                真实             800点  起点 2023-07-12
+   芯片ETF（国泰）                  真实             800点  起点 2023-07-12
+   计算机ETF（国泰）                 真实             800点  起点 2023-07-12
+   通信ETF（国泰）                  真实             800点  起点 2023-07-12
+   游戏ETF（国泰）                  真实             800点  起点 2023-07-12
+   科创芯片ETF（嘉实）                真实             800点  起点 2023-07-12
+
+【A股 · 医药ETF】
+   医疗ETF（华宝）                  真实             800点  起点 2023-07-12
+   医药ETF（易方达）                 真实             800点  起点 2023-07-12
+   创新药ETF（银华）                 真实             800点  起点 2023-07-12
+
+【A股 · 消费ETF】
+   酒ETF（鹏华）                   真实             800点  起点 2023-07-12
+   消费ETF（汇添富）                 真实             800点  起点 2023-07-12
+   家电ETF（国泰）                  真实             800点  起点 2023-07-12
+
+【A股 · 周期/资源ETF】
+   有色金属ETF（南方）                真实             800点  起点 2023-07-12
+   煤炭ETF（国泰）                  真实             800点  起点 2023-07-12
+   钢铁ETF（国泰）                  真实             800点  起点 2023-07-12
+   农业ETF（富国）                  真实             800点  起点 2023-07-12
+
+【A股 · 新能源/制造ETF】
+   新能源ETF（南方）                 真实             800点  起点 2023-07-12
+   光伏ETF（华泰柏瑞）                真实             800点  起点 2023-07-12
+   电池ETF（广发）                  真实             800点  起点 2023-07-12
+Traceback (most recent call last):
+  File "C:\Users\焦子原\WorkBuddy\2026-10-27-10-15-56\asset-manager\tools\check_sectors.py", line 89, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\焦子原\WorkBuddy\2026-10-27-10-15-56\asset-manager\tools\check_sectors.py", line 63, in main
+    st, hd, bd = req('/api/batch?secids=%s&start=20161101&end=20261030&period=day' % sid,
+                 ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     cookie=cookie, timeout=240)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\焦子原\WorkBuddy\2026-10-27-10-15-56\asset-manager\tools\check_sectors.py", line 34, in req
+    resp = op.open(r, timeout=timeout)
+  File "C:\Users\焦子原\.workbuddy\binaries\python\versions\3.13.12\Lib\urllib\request.py", line 489, in open
+    response = self._open(req, data)
+  File "C:\Users\焦子原\.workbuddy\binaries\python\versions\3.13.12\Lib\urllib\request.py", line 506, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+                              '_open', req)
+  File "C:\Users\焦子原\.workbuddy\binaries\python\versions\3.13.12\Lib\urllib\request.py", line 466, in _call_chain
+    result = func(*args)
+  File "C:\Users\焦子原\.workbuddy\binaries\python\versions\3.13.12\Lib\urllib\request.py", line 1367, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        context=self._context)
+                        ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\焦子原\.workbuddy\binaries\python\versions\3.13.12\Lib\urllib\request.py", line 1323, in do_open
+    r = h.getresponse()
+  File "C:\Users\焦子原\.workbuddy\binaries\python\versions\3.13.12\Lib\http\client.py", line 1459, in getresponse
+    response.begin()
+    ~~~~~~~~~~~~~~^^
+  File "C:\Users\焦子原\.workbuddy\binaries\python\versions\3.13.12\Lib\http\client.py", line 336, in begin
+    version, status, reason = self._read_status()
+                              ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\焦子原\.workbuddy\binaries\python\versions\3.13.12\Lib\http\client.py", line 297, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\焦子原\.workbuddy\binaries\python\versions\3.13.12\Lib\socket.py", line 723, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\焦子原\.workbuddy\binaries\python\versions\3.13.12\Lib\ssl.py", line 1304, in recv_into
+    return self.read(nbytes, buffer)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\焦子原\.workbuddy\binaries\python\versions\3.13.12\Lib\ssl.py", line 1138, in read
+    return self._sslobj.read(len, buffer)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+TimeoutError: The read operation timed out
