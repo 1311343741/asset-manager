@@ -110,11 +110,24 @@ window.Backtest = (function () {
 
       const wcell = document.createElement('div');
       wcell.className = 'wcell';
+      // 数字输入框而非滑块：滑块拖不出精确值，这里要求精确到小数点后 2 位
       const rg = document.createElement('input');
-      rg.type = 'range'; rg.min = '0'; rg.max = '100'; rg.step = '1'; rg.value = b.weight;
+      rg.type = 'number'; rg.className = 'wnum';
+      rg.min = '0'; rg.max = '100'; rg.step = '0.01';
+      rg.value = (Number(b.weight) || 0).toFixed(2);
       const wv = document.createElement('span');
-      wv.className = 'wval'; wv.textContent = b.weight.toFixed(0) + '%';
-      rg.oninput = () => { b.weight = Number(rg.value); wv.textContent = b.weight + '%'; updateWeightTip(); A.save(); };
+      wv.className = 'wval'; wv.textContent = (Number(b.weight) || 0).toFixed(2) + '%';
+      const commit = () => {
+        let v = parseFloat(rg.value);
+        if (!isFinite(v)) v = 0;
+        v = Math.max(0, Math.min(100, v));
+        b.weight = Math.round(v * 100) / 100;
+        rg.value = b.weight.toFixed(2);
+        wv.textContent = b.weight.toFixed(2) + '%';
+        updateWeightTip(); A.save();
+      };
+      rg.oninput = commit;
+      rg.onblur = commit;
       wcell.append(rg, wv);
 
       const del = document.createElement('button');
@@ -131,7 +144,7 @@ window.Backtest = (function () {
     const sum = basket.reduce((s, b) => s + (Number(b.weight) || 0), 0);
     const el = $('#weightTip');
     if (!el) return;
-    el.textContent = '权重合计 ' + sum.toFixed(0) + '%';
+    el.textContent = '权重合计 ' + sum.toFixed(2) + '%';
     el.style.color = Math.abs(sum - 100) < 0.5 ? '#12a594' : '#e5484d';
   }
 
@@ -379,8 +392,19 @@ window.Backtest = (function () {
     }
     if (inDd) maxRepair = Math.max(maxRepair, unitSeries.length - 1 - ddStart);
 
+    // 历史最大涨幅：区间内从任一低点持有到之后最高点的最大涨幅（最大回撤的镜像）
+    let maxGain = 0, trough = unitSeries[0];
+    for (let i = 1; i < unitSeries.length; i++) {
+      const v = unitSeries[i];
+      if (v < trough) trough = v;
+      else if (trough > 0) {
+        const g = v / trough - 1;
+        if (g > maxGain) maxGain = g;
+      }
+    }
+
     return {
-      totalRet, cagr: cagrV, mdd: dd.mdd, vol, sharpe, calmar,
+      totalRet, cagr: cagrV, mdd: dd.mdd, maxGain, vol, sharpe, calmar,
       years, irr, invested, finalNav,
       profit: finalNav - invested,
       roi: invested > 0 ? finalNav / invested - 1 : 0,
@@ -475,7 +499,7 @@ window.Backtest = (function () {
           details.push({
             secid: id, name: meta.name || id,
             weight: weights[id] || 0, ret: mm.totalRet, cagr: mm.cagr,
-            mdd: mm.mdd, vol: mm.vol, contrib: w * mm.totalRet,
+            mdd: mm.mdd, maxGain: mm.maxGain, vol: mm.vol, contrib: w * mm.totalRet,
             from: dts[0],
             source: meta.source || 'real',
             realStart: meta.realStart || dts[0],
@@ -517,7 +541,8 @@ window.Backtest = (function () {
       kpi('净收益', A.fmtMoney(m.profit), '投入回报率 ' + A.fmtPct(m.roi * 100, 1), upCls(m.profit)) +
       kpi('组合年化', A.fmtPct(m.cagr * 100, 2), '净值增长 ' + A.fmtPct(m.totalRet * 100, 1), upCls(m.cagr)) +
       kpi('资金加权 IRR', m.irr === null ? '—' : A.fmtPct(m.irr * 100, 2), '含定投现金流') +
-      kpi('最大回撤', A.fmtPct(m.mdd * 100, 2), m.ddPeak + ' → ' + m.ddTrough, 'danger') +
+      kpi('最大回撤', A.fmtPct(m.mdd * 100, 2), m.ddPeak + ' → ' + m.ddTrough, 'down') +
+      kpi('历史最大涨幅', A.fmtPct((m.maxGain || 0) * 100, 2), '区间内低点到高点', 'up') +
       kpi('年化波动 / 夏普', A.fmtPct(m.vol * 100, 1) + ' / ' + A.fmtNum(m.sharpe), '卡玛 ' + A.fmtNum(m.calmar));
 
     $('#btRangeNote').textContent =
@@ -561,16 +586,24 @@ window.Backtest = (function () {
         data: r.benchUnit.map(v => (v == null ? null : +(v * base).toFixed(3))),
       });
     }
-    const colors = ['#e5484d', '#12a594', '#f5a524', '#8b5cf6', '#0ea5e9', '#ec4899', '#84cc16', '#f97316'];
-    Object.keys(r.al.prices).forEach((id, i) => {
-      if (id === r.bench) return;
+    // 标的数量远超调色板长度，若仍按 i % 8 取色会循环出重复颜色，
+    // 图例里就会有两项同色、分不清哪条线对应哪个标的。这里保证颜色互不相同。
+    const ids = Object.keys(r.al.prices).filter(id => id !== r.bench);
+    const palette = ['#e5484d', '#12a594', '#f5a524', '#8b5cf6', '#0ea5e9', '#ec4899',
+                     '#84cc16', '#f97316', '#14b8a6', '#6366f1', '#a855f7', '#22c55e'];
+    const colorOf = k => (ids.length <= palette.length)
+      ? palette[k % palette.length]
+      : 'hsl(' + Math.round(k * 360 / ids.length) + ',62%,45%)';
+    ids.forEach((id, k) => {
       const p = r.al.prices[id];
       const f0 = p.find(v => v != null);
       if (f0 == null) return;
+      const c = colorOf(k);
       series.push({
         name: (r.series[id] && r.series[id].name) || id,
         type: 'line', showSymbol: false, connectNulls: false,
-        lineStyle: { width: 1, color: colors[i % colors.length], opacity: .75 },
+        lineStyle: { width: 1, color: c, opacity: .8 },
+        itemStyle: { color: c },
         data: p.map(v => (v == null ? null : +(v / f0 * base).toFixed(3))),
       });
     });
@@ -582,11 +615,15 @@ window.Backtest = (function () {
         valueFormatter: v => (+v).toFixed(1),
       },
       legend: { top: 0, itemWidth: 14, itemHeight: 8, textStyle: { fontSize: 11, color: '#475569' }, type: 'scroll' },
-      grid: Object.assign({}, A.GRID, { top: 46, left: 50, bottom: 56 }),
-      xAxis: Object.assign({ type: 'category', data: r.al.dates, boundaryGap: false }, A.AXIS_STYLE,
+      grid: Object.assign({}, A.GRID, { top: 46, left: 64, bottom: 62 }),
+      xAxis: Object.assign({ type: 'category', data: r.al.dates, boundaryGap: false,
+        name: '日期', nameLocation: 'middle', nameGap: 28,
+        nameTextStyle: { color: '#7b8798', fontSize: 11 } }, A.AXIS_STYLE,
         { axisLabel: { color: '#7b8798', fontSize: 11, formatter: v => v.slice(0, 7) } }),
-      yAxis: Object.assign({ type: 'value', scale: true }, A.AXIS_STYLE,
-        { axisLabel: { color: '#7b8798', fontSize: 11 } }),
+      yAxis: Object.assign({ type: 'value', scale: true,
+        name: '百分位', nameLocation: 'middle', nameGap: 44,
+        nameTextStyle: { color: '#7b8798', fontSize: 11 } }, A.AXIS_STYLE,
+        { axisLabel: { color: '#7b8798', fontSize: 11, formatter: v => (+v).toFixed(0) } }),
       dataZoom: [{ type: 'inside' }, { type: 'slider', height: 16, bottom: 6, borderColor: 'transparent' }],
       series,
     });
@@ -644,10 +681,11 @@ window.Backtest = (function () {
     };
     tb.innerHTML = r.details.map(d =>
       '<tr><td>' + d.name + '</td>' +
-      '<td class="num">' + d.weight.toFixed(0) + '%</td>' +
+      '<td class="num">' + d.weight.toFixed(2) + '%</td>' +
       '<td class="num" style="color:' + (d.ret >= 0 ? '#e5484d' : '#12a594') + '">' + A.fmtPct(d.ret * 100, 1) + '</td>' +
       '<td class="num">' + A.fmtPct(d.cagr * 100, 2) + '</td>' +
       '<td class="num" style="color:#12a594">' + A.fmtPct(d.mdd * 100, 1) + '</td>' +
+      '<td class="num" style="color:#e5484d">' + (d.maxGain == null ? '—' : A.fmtPct(d.maxGain * 100, 1)) + '</td>' +
       '<td class="num">' + A.fmtPct(d.vol * 100, 1) + '</td>' +
       '<td class="num">' + (d.contrib * 100).toFixed(1) + '%</td>' +
       '<td>' + srcCell(d) + '</td></tr>'
