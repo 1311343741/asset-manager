@@ -703,6 +703,24 @@ window.Backtest = (function () {
   function bind() {
     $('#btnRunBacktest').onclick = run;
 
+    // 选择「不定投」时把定投金额置灰；开启时提示按权重比例分摊
+    const syncDca = () => {
+      const f = $('#btDcaFreq'), a = $('#btDcaAmt'), hint = $('#dcaHint');
+      if (!f || !a) return;
+      const off = f.value === 'none';
+      a.disabled = off;
+      a.classList.toggle('disabled-input', off);
+      if (hint) {
+        hint.textContent = off
+          ? '当前：不定投，仅一次性买入'
+          : '每期金额按组合权重比例分配到各标的';
+      }
+    };
+    if ($('#btDcaFreq')) {
+      $('#btDcaFreq').onchange = syncDca;
+      syncDca();
+    }
+
     $$('#btRanges .chip').forEach(c => {
       c.onclick = () => {
         $$('#btRanges .chip').forEach(x => x.classList.remove('active'));
