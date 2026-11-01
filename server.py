@@ -227,6 +227,13 @@ def fetch_kline(secid, klt=101, force=False, retry=3):
         except Exception:
             alt = None
         if alt and alt.get("close"):
+            # 备用源一般只给最近约 3 年，绝不能让它覆盖掉已有的更长历史：
+            # 否则宽基指数会从几十年退化成 3 年，长周期回测直接塌掉。
+            # 宁可用「过期但更长」的旧缓存，也不要「新鲜但很短」的备用源数据。
+            if stale and len(stale.get("dates") or []) > len(alt["dates"]):
+                stale["staleServed"] = int(time.time())
+                _write_cache(secid, klt, stale)
+                return stale
             alt["via"] = "backup"        # 标记来源，便于排查
             _write_cache(secid, klt, alt)
             return alt
@@ -442,18 +449,9 @@ def _get_series(secid, klt=101, need_start=None, _depth=0):
         return _meta(secid, real["name"], real["dates"], real["close"], src, real_start,
                      None, None if not need else "历史数据仅到 %s，更早区间缺失" % real_start)
 
-    # 4) 历史不足：先试代理回溯（代理自身若也不足，会递归补全）
-    #    只要代理比本资产更早，就值得拿它来回溯一段
-    pid = proxy_of(secid)
-    if pid and pid != secid:
-        p = get_series(pid, klt, need_start=need_start, _depth=_depth + 1)
-        if p and p["dates"] and p["dates"][0] < real_start:
-            dt, cl = backfill_with_proxy(real, p, need_start)
-            if dt:
-                return _meta(secid, real["name"], dt, cl, "mixed", real_start, p["name"],
-                             "早于 %s 为模拟（沿用「%s」真实走势回溯）" % (real_start, p["name"]))
-
-    # 5) 再退化：按画像做参数化补全
+    # 4) 历史不足：优先按板块画像做模拟 K 线补全。
+    #    板块 ETF 真实数据普遍只有几年，用带板块波动特征的随机游走回溯，
+    #    比直接沿用宽基指数走势更能体现该板块自身的风险收益特征。
     prof = SYNTH_PROFILE.get(synth_of(secid) or "")
     cal = None
     if prof:
@@ -464,6 +462,16 @@ def _get_series(secid, klt=101, need_start=None, _depth=0):
         if dt:
             return _meta(secid, real["name"], dt, cl, "mixed", real_start, prof["label"],
                          "早于 %s 为模拟（按「%s」随机游走合成）" % (real_start, prof["label"]))
+
+    # 5) 无画像时退化到代理回溯（沿用相关指数的真实走势）
+    pid = proxy_of(secid)
+    if pid and pid != secid:
+        p = get_series(pid, klt, need_start=need_start, _depth=_depth + 1)
+        if p and p["dates"] and p["dates"][0] < real_start:
+            dt, cl = backfill_with_proxy(real, p, need_start)
+            if dt:
+                return _meta(secid, real["name"], dt, cl, "mixed", real_start, p["name"],
+                             "早于 %s 为模拟（沿用「%s」真实走势回溯）" % (real_start, p["name"]))
 
     return _meta(secid, real["name"], real["dates"], real["close"], src, real_start,
                  None, "历史数据仅到 %s，更早区间缺失" % real_start)
@@ -486,14 +494,14 @@ CATALOG = [
         {"secid": "0.899050", "name": "北证50", "proxy": "1.000852"},
     ]},
     {"group": "A股 · 宽基ETF", "color": "#be123c", "items": [
-        {"secid": "1.510300", "name": "沪深300ETF（华泰柏瑞）", "proxy": "1.000300"},
-        {"secid": "1.510500", "name": "中证500ETF（南方）", "proxy": "1.000905"},
-        {"secid": "1.510050", "name": "上证50ETF（华夏）", "proxy": "1.000016"},
-        {"secid": "1.512100", "name": "中证1000ETF（南方）", "proxy": "1.000852"},
-        {"secid": "1.588000", "name": "科创50ETF（华夏）", "proxy": "1.000688"},
-        {"secid": "1.563300", "name": "中证2000ETF（华泰柏瑞）", "proxy": "1.000852"},
-        {"secid": "0.159915", "name": "创业板ETF（易方达）", "proxy": "0.399006"},
-        {"secid": "0.159949", "name": "创业板50ETF（华安）", "proxy": "0.399006"},
+        {"secid": "1.510300", "name": "沪深300ETF（华泰柏瑞）", "proxy": "1.000300", "synth": "broadETF"},
+        {"secid": "1.510500", "name": "中证500ETF（南方）", "proxy": "1.000905", "synth": "broadETF"},
+        {"secid": "1.510050", "name": "上证50ETF（华夏）", "proxy": "1.000016", "synth": "broadETF"},
+        {"secid": "1.512100", "name": "中证1000ETF（南方）", "proxy": "1.000852", "synth": "broadETF"},
+        {"secid": "1.588000", "name": "科创50ETF（华夏）", "proxy": "1.000688", "synth": "broadETF"},
+        {"secid": "1.563300", "name": "中证2000ETF（华泰柏瑞）", "proxy": "1.000852", "synth": "broadETF"},
+        {"secid": "0.159915", "name": "创业板ETF（易方达）", "proxy": "0.399006", "synth": "broadETF"},
+        {"secid": "0.159949", "name": "创业板50ETF（华安）", "proxy": "0.399006", "synth": "broadETF"},
     ]},
     {"group": "A股 · 红利/策略", "color": "#f5a524", "items": [
         {"secid": "1.000922", "name": "中证红利"},
@@ -502,45 +510,45 @@ CATALOG = [
         {"secid": "1.512890", "name": "红利低波ETF（华泰柏瑞）", "proxy": "1.510880"},
     ]},
     {"group": "A股 · 科技ETF", "color": "#0ea5e9", "items": [
-        {"secid": "1.512480", "name": "半导体ETF（国联安）", "proxy": "0.399006"},
-        {"secid": "1.512760", "name": "芯片ETF（国泰）", "proxy": "0.399006"},
-        {"secid": "1.512720", "name": "计算机ETF（国泰）", "proxy": "0.399006"},
-        {"secid": "1.515880", "name": "通信ETF（国泰）", "proxy": "0.399006"},
-        {"secid": "1.516010", "name": "游戏ETF（国泰）", "proxy": "0.399006"},
-        {"secid": "1.588200", "name": "科创芯片ETF（嘉实）", "proxy": "1.000688"},
+        {"secid": "1.512480", "name": "半导体ETF（国联安）", "proxy": "0.399006", "synth": "tech"},
+        {"secid": "1.512760", "name": "芯片ETF（国泰）", "proxy": "0.399006", "synth": "tech"},
+        {"secid": "1.512720", "name": "计算机ETF（国泰）", "proxy": "0.399006", "synth": "tech"},
+        {"secid": "1.515880", "name": "通信ETF（国泰）", "proxy": "0.399006", "synth": "tech"},
+        {"secid": "1.516010", "name": "游戏ETF（国泰）", "proxy": "0.399006", "synth": "tech"},
+        {"secid": "1.588200", "name": "科创芯片ETF（嘉实）", "proxy": "1.000688", "synth": "tech"},
     ]},
     {"group": "A股 · 医药ETF", "color": "#22c55e", "items": [
-        {"secid": "1.512170", "name": "医疗ETF（华宝）", "proxy": "0.399006"},
-        {"secid": "1.512010", "name": "医药ETF（易方达）", "proxy": "0.399006"},
-        {"secid": "0.159992", "name": "创新药ETF（银华）", "proxy": "0.399006"},
+        {"secid": "1.512170", "name": "医疗ETF（华宝）", "proxy": "0.399006", "synth": "pharm"},
+        {"secid": "1.512010", "name": "医药ETF（易方达）", "proxy": "0.399006", "synth": "pharm"},
+        {"secid": "0.159992", "name": "创新药ETF（银华）", "proxy": "0.399006", "synth": "pharm"},
     ]},
     {"group": "A股 · 消费ETF", "color": "#f43f5e", "items": [
-        {"secid": "1.512690", "name": "酒ETF（鹏华）", "proxy": "1.000300"},
-        {"secid": "0.159928", "name": "消费ETF（汇添富）", "proxy": "1.000300"},
-        {"secid": "0.159996", "name": "家电ETF（国泰）", "proxy": "1.000300"},
+        {"secid": "1.512690", "name": "酒ETF（鹏华）", "proxy": "1.000300", "synth": "consume"},
+        {"secid": "0.159928", "name": "消费ETF（汇添富）", "proxy": "1.000300", "synth": "consume"},
+        {"secid": "0.159996", "name": "家电ETF（国泰）", "proxy": "1.000300", "synth": "consume"},
     ]},
     {"group": "A股 · 周期/资源ETF", "color": "#a16207", "items": [
-        {"secid": "1.512400", "name": "有色金属ETF（南方）", "proxy": "1.000300"},
-        {"secid": "1.515220", "name": "煤炭ETF（国泰）", "proxy": "1.000300"},
-        {"secid": "1.515210", "name": "钢铁ETF（国泰）", "proxy": "1.000300"},
-        {"secid": "0.159825", "name": "农业ETF（富国）", "proxy": "1.000300"},
+        {"secid": "1.512400", "name": "有色金属ETF（南方）", "proxy": "1.000300", "synth": "cyclical"},
+        {"secid": "1.515220", "name": "煤炭ETF（国泰）", "proxy": "1.000300", "synth": "cyclical"},
+        {"secid": "1.515210", "name": "钢铁ETF（国泰）", "proxy": "1.000300", "synth": "cyclical"},
+        {"secid": "0.159825", "name": "农业ETF（富国）", "proxy": "1.000300", "synth": "cyclical"},
     ]},
     {"group": "A股 · 新能源/制造ETF", "color": "#16a34a", "items": [
-        {"secid": "1.516160", "name": "新能源ETF（南方）", "proxy": "0.399006"},
-        {"secid": "1.515790", "name": "光伏ETF（华泰柏瑞）", "proxy": "0.399006"},
-        {"secid": "0.159755", "name": "电池ETF（广发）", "proxy": "0.399006"},
+        {"secid": "1.516160", "name": "新能源ETF（南方）", "proxy": "0.399006", "synth": "newenergy"},
+        {"secid": "1.515790", "name": "光伏ETF（华泰柏瑞）", "proxy": "0.399006", "synth": "newenergy"},
+        {"secid": "0.159755", "name": "电池ETF（广发）", "proxy": "0.399006", "synth": "newenergy"},
     ]},
     {"group": "A股 · 金融/地产ETF", "color": "#7c3aed", "items": [
-        {"secid": "1.512880", "name": "证券ETF（国泰）", "proxy": "1.000300"},
-        {"secid": "1.512800", "name": "银行ETF（华宝）", "proxy": "1.000300"},
-        {"secid": "1.512000", "name": "券商ETF（华宝）", "proxy": "1.000300"},
-        {"secid": "1.512200", "name": "房地产ETF（南方）", "proxy": "1.000300"},
-        {"secid": "1.516950", "name": "基建ETF（银华）", "proxy": "1.000300"},
+        {"secid": "1.512880", "name": "证券ETF（国泰）", "proxy": "1.000300", "synth": "fin"},
+        {"secid": "1.512800", "name": "银行ETF（华宝）", "proxy": "1.000300", "synth": "fin"},
+        {"secid": "1.512000", "name": "券商ETF（华宝）", "proxy": "1.000300", "synth": "fin"},
+        {"secid": "1.512200", "name": "房地产ETF（南方）", "proxy": "1.000300", "synth": "fin"},
+        {"secid": "1.516950", "name": "基建ETF（银华）", "proxy": "1.000300", "synth": "fin"},
     ]},
     {"group": "A股 · 军工/传媒/环保ETF", "color": "#0891b2", "items": [
-        {"secid": "1.512660", "name": "军工ETF（国泰）", "proxy": "1.000300"},
-        {"secid": "1.512980", "name": "传媒ETF（广发）", "proxy": "0.399006"},
-        {"secid": "1.512580", "name": "环保ETF（广发）", "proxy": "0.399006"},
+        {"secid": "1.512660", "name": "军工ETF（国泰）", "proxy": "1.000300", "synth": "defense"},
+        {"secid": "1.512980", "name": "传媒ETF（广发）", "proxy": "0.399006", "synth": "defense"},
+        {"secid": "1.512580", "name": "环保ETF（广发）", "proxy": "0.399006", "synth": "defense"},
     ]},
     {"group": "中国香港股市", "color": "#0090ff", "items": [
         {"secid": "100.HSI", "name": "恒生指数"},
@@ -549,12 +557,12 @@ CATALOG = [
         {"secid": "124.HSHDYI", "name": "恒生高股息率指数"},
     ]},
     {"group": "港股 · 中概ETF", "color": "#0284c7", "items": [
-        {"secid": "1.513050", "name": "中概互联网ETF（易方达）", "proxy": "100.HSI"},
-        {"secid": "1.513180", "name": "恒生科技ETF（华夏）", "proxy": "100.HSI"},
-        {"secid": "1.513130", "name": "恒生科技ETF（华泰柏瑞）", "proxy": "100.HSI"},
-        {"secid": "1.513330", "name": "恒生互联网ETF（华夏）", "proxy": "100.HSI"},
-        {"secid": "1.513060", "name": "恒生医疗ETF（博时）", "proxy": "100.HSI"},
-        {"secid": "1.513970", "name": "恒生消费ETF（景顺）", "proxy": "100.HSI"},
+        {"secid": "1.513050", "name": "中概互联网ETF（易方达）", "proxy": "100.HSI", "synth": "hk"},
+        {"secid": "1.513180", "name": "恒生科技ETF（华夏）", "proxy": "100.HSI", "synth": "hk"},
+        {"secid": "1.513130", "name": "恒生科技ETF（华泰柏瑞）", "proxy": "100.HSI", "synth": "hk"},
+        {"secid": "1.513330", "name": "恒生互联网ETF（华夏）", "proxy": "100.HSI", "synth": "hk"},
+        {"secid": "1.513060", "name": "恒生医疗ETF（博时）", "proxy": "100.HSI", "synth": "hk"},
+        {"secid": "1.513970", "name": "恒生消费ETF（景顺）", "proxy": "100.HSI", "synth": "hk"},
     ]},
     {"group": "美国股市", "color": "#8b5cf6", "items": [
         {"secid": "100.NDX100", "name": "纳斯达克100", "proxy": "100.NDX"},
@@ -574,15 +582,24 @@ CATALOG = [
         {"secid": "1.511090", "name": "30年国债ETF", "proxy": "1.511260"},
     ]},
     {"group": "现金类（无行情，按固定利率）", "color": "#64748b", "items": [
-        {"secid": "CASH", "name": "现金 / 活期", "fixed": 0.30},
-        {"secid": "DEP1", "name": "定期存款 / 大额存单", "fixed": 2.00},
-        {"secid": "MMF", "name": "货币基金 / 理财", "fixed": 1.80},
+        {"secid": "CASH", "name": "现金 / 活期", "fixed": 0.3},
+        {"secid": "DEP1", "name": "定期存款 / 大额存单", "fixed": 2.0},
+        {"secid": "MMF", "name": "货币基金 / 理财", "fixed": 1.8},
     ]},
 ]
 
 # 参数化合成画像：年化收益 / 年化波动
 SYNTH_PROFILE = {
     "bond": {"mu": 0.035, "sigma": 0.030, "label": "中债利率债典型走势"},
+    "broadETF": {"mu": 0.070, "sigma": 0.220, "label": "宽基指数典型走势"},
+    "tech": {"mu": 0.090, "sigma": 0.350, "label": "科技板块典型走势"},
+    "pharm": {"mu": 0.080, "sigma": 0.280, "label": "医药板块典型走势"},
+    "consume": {"mu": 0.090, "sigma": 0.250, "label": "消费板块典型走势"},
+    "cyclical": {"mu": 0.060, "sigma": 0.300, "label": "周期资源板块典型走势"},
+    "newenergy": {"mu": 0.100, "sigma": 0.400, "label": "新能源板块典型走势"},
+    "fin": {"mu": 0.060, "sigma": 0.240, "label": "金融地产板块典型走势"},
+    "defense": {"mu": 0.070, "sigma": 0.300, "label": "军工传媒板块典型走势"},
+    "hk": {"mu": 0.070, "sigma": 0.300, "label": "港股板块典型走势"},
 }
 
 _ALL_ITEMS = {}
