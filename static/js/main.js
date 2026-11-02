@@ -23,7 +23,8 @@
     A.load();
     bindTabs();
     // 先备好离线快照：后端不可用（静态打开 / 服务未启动）时自动降级，功能不残缺
-    await A.loadSnapshot();
+    // 快照加载失败绝不能阻断后面的初始化，否则整页功能全废
+    try { await A.loadSnapshot(); } catch (e) { console.warn('[快照] 加载失败，继续初始化:', e); }
     // 逐个 try：任一模块自己出错，不该连带把其余板块全部拖挂
     [['资产现状', NetWorth], ['现金流', Cashflow], ['历史回测', Backtest], ['未来预测', Forecast]]
       .forEach(function (pair) {
