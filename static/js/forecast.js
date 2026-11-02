@@ -108,6 +108,7 @@ window.Forecast = (function () {
 
   /** 投入频率 -> 每年期数 / 间隔月数 */
   const FREQ = {
+    none: { times: 0, step: 9999, label: '不定投' },
     month: { times: 12, step: 1, label: '每月' },
     quarter: { times: 4, step: 3, label: '每季' },
     year: { times: 1, step: 12, label: '每年' },
@@ -800,6 +801,17 @@ window.Forecast = (function () {
 
   /* ---------------- 绑定 ---------------- */
   function bind() {
+    // 选择「不定投」时把每次投入金额置灰
+    const syncFc = () => {
+      const f = $('#fcContribMode'), a = $('#fcAnnual'), hint = $('#fcContribHint');
+      if (!f || !a) return;
+      const off = f.value === 'none';
+      a.disabled = off;
+      a.classList.toggle('disabled-input', off);
+      if (hint) hint.textContent = off ? '当前：不定投，仅起始本金参与预测' : '';
+    };
+    if ($('#fcContribMode')) { $('#fcContribMode').onchange = syncFc; syncFc(); }
+
     $$('#fcMode .seg').forEach(s => {
       s.onclick = () => {
         $$('#fcMode .seg').forEach(x => x.classList.remove('active'));
