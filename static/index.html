@@ -18,7 +18,7 @@
     </div>
   </div>
   <nav class="tabs" id="mainTabs">
-    <button class="tab active" data-tab="worth"><i>①</i>资产负债</button>
+    <button class="tab active" data-tab="worth"><i>①</i>资产现状</button>
     <button class="tab" data-tab="backtest"><i>②</i>历史回测</button>
     <button class="tab" data-tab="forecast"><i>③</i>未来预测</button>
   </nav>
@@ -108,6 +108,50 @@
             <tbody></tbody>
             <tfoot><tr><td colspan="2">合计</td><td class="num" id="sumDebt">¥0</td><td class="num">100%</td><td colspan="2"></td></tr></tfoot>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 现金流统计 ============ -->
+    <div class="card cf-card">
+      <div class="card-hd">
+        <h3>现金流统计</h3>
+        <span class="hint">流入记正数、流出记负数；月与年只需填一个，另一个自动换算</span>
+      </div>
+
+      <div class="cf-layout">
+        <div class="cf-main">
+          <div class="cf-seg">
+            <div class="cf-seg-hd"><span class="cf-dot in"></span>流入（非投资收益）</div>
+            <div class="cf-grid" id="cfInGrid"></div>
+          </div>
+          <div class="cf-seg">
+            <div class="cf-seg-hd"><span class="cf-dot out"></span>流出（非投资开支）</div>
+            <div class="cf-grid" id="cfOutGrid"></div>
+          </div>
+          <div class="row-actions">
+            <button class="btn" id="btnCfCalc">一键统计</button>
+            <button class="btn ghost" id="btnCfDemo">填入示例</button>
+            <button class="btn danger-ghost" id="btnCfClear">清空现金流</button>
+          </div>
+        </div>
+
+        <div class="cf-side">
+          <div class="cf-big">
+            <span class="cf-big-label">总收入</span>
+            <span class="cf-big-val up" id="cfIncome">¥0</span>
+            <span class="cf-big-sub" id="cfIncomeSub">全年 · 月均 ¥0</span>
+          </div>
+          <div class="cf-big">
+            <span class="cf-big-label">总支出</span>
+            <span class="cf-big-val down" id="cfExpense">¥0</span>
+            <span class="cf-big-sub" id="cfExpenseSub">全年 · 月均 ¥0</span>
+          </div>
+          <div class="cf-big hero">
+            <span class="cf-big-label">净现金流</span>
+            <span class="cf-big-val" id="cfNet">¥0</span>
+            <span class="cf-big-sub" id="cfNetSub">全年盈余 · 月均 ¥0</span>
+          </div>
         </div>
       </div>
     </div>
@@ -369,6 +413,7 @@
 <script src="js/networth.js"></script>
 <script src="js/backtest.js"></script>
 <script src="js/forecast.js"></script>
+<script src="js/cashflow.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
