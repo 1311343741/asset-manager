@@ -1,7 +1,7 @@
 /* 功能：现金流统计（挂在「资产现状」板块内）
    流入记正、流出记负；月与年互相换算，右侧给出总收入 / 总支出 / 净现金流三个汇总数。 */
 window.Cashflow = (function () {
-  const A = window.App;
+  const A = window.AM;
   const $ = s => document.querySelector(s);
 
   // 非投资收益（流入）
