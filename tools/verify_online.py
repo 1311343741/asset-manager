@@ -45,6 +45,13 @@ CHECKS = [
     ('/', 'dcaHint'),
     ('/js/forecast.js', '实际预测线'),
     ('/js/forecast.js', 'rawFinals'),
+    # 本轮：资产类别 / 导入落盘 / 权重输入 / 100% 校验 / 预测不定投
+    ('/js/networth.js', '中短债'),
+    ('/js/networth.js', '导入成功'),
+    ('/js/backtest.js', 'writeBack'),
+    ('/js/backtest.js', '没有配置完整'),
+    ('/js/forecast.js', 'times: 0'),
+    ('/js/forecast.js', 'syncFc'),
 ]
 
 
