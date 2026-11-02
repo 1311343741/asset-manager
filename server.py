@@ -398,7 +398,15 @@ def backfill_with_synth(real, need_start, prof, calendar):
     q[-1] = float(real["close"][0])
     for i in range(len(idx) - 1, 0, -1):
         r = rng.gauss(mu_d, sd_d)
-        q[i - 1] = q[i] / max(0.5, 1.0 + r)
+        # 单日收益裁剪到 ±25%：长序列若不裁剪，几百上千步的累积乘积会把
+        # 早期价格推到接近 0，界面上就表现为「模拟资产直接归零」。
+        r = max(-0.25, min(0.25, r))
+        q[i - 1] = q[i] / (1.0 + r)
+    # 兜底：绝不允许出现 0 或负值，否则后面算份额、净值时会除零
+    floor = q[-1] * 0.05
+    for i in range(len(q)):
+        if not (q[i] > 0) or q[i] < floor:
+            q[i] = floor
     # 与真实段拼接（idx 的最后一天严格早于真实起点）
     return idx + list(real["dates"]), q + list(real["close"])
 
@@ -406,8 +414,32 @@ def backfill_with_synth(real, need_start, prof, calendar):
 _SERIES_MEM = {}      # (secid, klt, need_start) -> (ts, result)，1 小时内复用
 
 
+def _fixed_series(secid, klt=101, need_start=None):
+    """现金类：无行情，按固定年化利率合成复利净值曲线（起点 1.0）"""
+    rate = is_fixed(secid)
+    if rate is None:
+        return None
+    ref = None
+    try:
+        ref = get_series("1.000300", klt, None, 2)      # 借 A 股交易日历
+    except Exception:
+        ref = None
+    cal = (ref or {}).get("dates") or []
+    if len(cal) < 60:
+        return None
+    daily = (float(rate) / 100.0) / 252.0
+    dates, close = [], []
+    for i, d in enumerate(cal):
+        dates.append(d)
+        close.append(round((1.0 + daily) ** i, 6))
+    return _meta(secid, _cat_name(secid), dates, close, "fixed", dates[0], None,
+                 "现金类，按年化 %s%% 固定利率模拟" % rate)
+
+
 def get_series(secid, klt=101, need_start=None, _depth=0):
     """带内存缓存的入口：回测反复用同一区间时不必重复做补全计算"""
+    if is_fixed(secid) is not None:          # 现金类：直接给固定利率曲线
+        return _fixed_series(secid, klt, need_start)
     key = (secid, klt, need_start)
     hit = _SERIES_MEM.get(key)
     if hit and time.time() - hit[0] < 3600:
@@ -586,13 +618,17 @@ CATALOG = [
         {"secid": "102.CL00Y", "name": "NYMEX原油"},
     ]},
     {"group": "债券 / 固收", "color": "#12a594", "items": [
-        {"secid": "1.511260", "name": "十年国债ETF", "synth": "bond"},
+        {"secid": "1.511010", "name": "短期债券（国债ETF，仅供参考）", "synth": "bond"},
+        {"secid": "1.511260", "name": "中长期债券（十年国债ETF）", "synth": "bond"},
         {"secid": "1.511090", "name": "30年国债ETF", "proxy": "1.511260"},
     ]},
     {"group": "现金类（无行情，按固定利率）", "color": "#64748b", "items": [
-        {"secid": "CASH", "name": "现金 / 活期", "fixed": 0.3},
-        {"secid": "DEP1", "name": "定期存款 / 大额存单", "fixed": 2.0},
-        {"secid": "MMF", "name": "货币基金 / 理财", "fixed": 1.8},
+        # 现金本身不产生收益；活期按 0.3% 计；存款/货基按近三十年中枢设定，
+        # 设定后固定下来，只在后台调整，不随行情变动。
+        {"secid": "CASH", "name": "现金", "fixed": 0.0},
+        {"secid": "DEMAND", "name": "活期存款", "fixed": 0.3},
+        {"secid": "DEP1", "name": "定期存款 / 大额存单", "fixed": 3.0},
+        {"secid": "MMF", "name": "货币基金 / 理财", "fixed": 2.5},
     ]},
 ]
 
