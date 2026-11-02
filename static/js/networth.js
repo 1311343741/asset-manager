@@ -4,7 +4,9 @@ window.NetWorth = (function () {
   const A = window.AM;
   const { $, $$ } = A;
 
-  const ASSET_CATS = ['现金及活期', '存款 / 理财', '股票', '基金 / ETF', '房产', '车辆', '贵金属', '保险 / 年金', '其他资产'];
+  const ASSET_CATS = ['现金及活期', '存款 / 理财', '股票', '基金 / ETF',
+    '中短债', '长债', '国债', '保险', '数字货币',
+    '房产', '车辆', '贵金属', '其他资产'];
   const DEBT_CATS = ['房贷', '车贷', '消费贷', '信用卡', '经营贷', '其他负债'];
 
   let uid = 1;
@@ -303,7 +305,8 @@ window.NetWorth = (function () {
 
     $('#btnClear').onclick = () => {
       if (!confirm('确认清空全部资产与负债记录？')) return;
-      A.state.assets = []; A.state.debts = []; render(); A.toast('已清空');
+      A.state.assets = []; A.state.debts = [];
+      render(); A.save(); A.toast('已清空');   // 不落盘的话刷新就又回来了
     };
 
     $('#btnExport').onclick = () => {
@@ -323,9 +326,11 @@ window.NetWorth = (function () {
       rd.onload = () => {
         try {
           const o = JSON.parse(rd.result);
-          if (Array.isArray(o.assets)) A.state.assets = o.assets.map(x => Object.assign({ id: nid() }, x));
-          if (Array.isArray(o.debts)) A.state.debts = o.debts.map(x => Object.assign({ id: nid() }, x));
-          render(); A.toast('导入成功');
+          let n = 0;
+          if (Array.isArray(o.assets)) { A.state.assets = o.assets.map(x => Object.assign({ id: nid() }, x)); n += A.state.assets.length; }
+          if (Array.isArray(o.debts)) { A.state.debts = o.debts.map(x => Object.assign({ id: nid() }, x)); n += A.state.debts.length; }
+          // 关键：导入后必须落盘，否则刷新页面又变回导入前的旧数据
+          render(); A.save(); A.toast('导入成功，共 ' + n + ' 条');
         } catch (e) { A.toast('文件格式有误'); }
       };
       rd.readAsText(f); fi.value = '';
