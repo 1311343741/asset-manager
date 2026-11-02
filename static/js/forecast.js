@@ -835,7 +835,7 @@ window.Forecast = (function () {
     updateContribHint();
     $('#btnUseNetAsset').onclick = () => {
       const v = window.NetWorth ? NetWorth.totals().net : 0;
-      if (v <= 0) { A.toast('净资产为 0，请先在「资产负债」录入'); return; }
+      if (v <= 0) { A.toast('净资产为 0，请先在「资产现状」录入'); return; }
       setInitial(v); A.toast('已使用净资产 ' + A.fmtMoney(v));
     };
     $('#btnManualAdd').onclick = () => addManualRow();
