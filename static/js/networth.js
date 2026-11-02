@@ -1,4 +1,4 @@
-/* 功能一：资产负债 / 净资产核算 */
+/* 功能一：资产现状 / 净资产核算 */
 window.NetWorth = (function () {
   'use strict';
   const A = window.AM;
@@ -313,7 +313,7 @@ window.NetWorth = (function () {
       const blob = new Blob([JSON.stringify({ assets: A.state.assets, debts: A.state.debts }, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = '资产管家_资产负债_' + A.today() + '.json';
+      a.download = '资产管家_资产现状_' + A.today() + '.json';
       a.click(); URL.revokeObjectURL(a.href);
     };
 
