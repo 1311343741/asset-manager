@@ -24,10 +24,12 @@
     bindTabs();
     // 先备好离线快照：后端不可用（静态打开 / 服务未启动）时自动降级，功能不残缺
     await A.loadSnapshot();
-    NetWorth.init();
-    Cashflow.init();
-    Backtest.init();
-    Forecast.init();
+    // 逐个 try：任一模块自己出错，不该连带把其余板块全部拖挂
+    [['资产现状', NetWorth], ['现金流', Cashflow], ['历史回测', Backtest], ['未来预测', Forecast]]
+      .forEach(function (pair) {
+        try { pair[1].init(); }
+        catch (e) { console.error('[' + pair[0] + '] 初始化失败:', e); }
+      });
     A.probeSource();
   });
 })();
