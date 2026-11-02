@@ -117,17 +117,19 @@ window.Backtest = (function () {
       rg.value = (Number(b.weight) || 0).toFixed(2);
       const wv = document.createElement('span');
       wv.className = 'wval'; wv.textContent = (Number(b.weight) || 0).toFixed(2) + '%';
-      const commit = () => {
+      // writeBack=true 时才回写输入框。输入过程中改 value 会把光标顶到末尾，
+      // 导致小数没法连续输入（用户反馈的"小数点前后要分开输"就是这么来的）。
+      const commit = (writeBack) => {
         let v = parseFloat(rg.value);
         if (!isFinite(v)) v = 0;
         v = Math.max(0, Math.min(100, v));
         b.weight = Math.round(v * 100) / 100;
-        rg.value = b.weight.toFixed(2);
+        if (writeBack) rg.value = b.weight.toFixed(2);
         wv.textContent = b.weight.toFixed(2) + '%';
         updateWeightTip(); A.save();
       };
-      rg.oninput = commit;
-      rg.onblur = commit;
+      rg.oninput = () => commit(false);
+      rg.onblur = () => commit(true);
       wcell.append(rg, wv);
 
       const del = document.createElement('button');
@@ -430,6 +432,20 @@ window.Backtest = (function () {
   /* ---------------- 运行 ---------------- */
   function run() {
     if (basket.length < 1) { A.toast('请先选择至少一个标的'); return; }
+
+    // 权重合计必须正好 100%，多一分少一分都不回测
+    const wsum = basket.reduce((s, b) => s + (Number(b.weight) || 0), 0);
+    if (Math.abs(wsum - 100) > 0.005) {
+      const st0 = $('#btState');
+      if (st0) {
+        st0.className = 'runstate';
+        st0.textContent = '没有配置完整：权重合计 ' + wsum.toFixed(2) + '%，需要正好 100%';
+      }
+      A.toast('没有配置完整：当前合计 ' + wsum.toFixed(2) + '%');
+      updateWeightTip();
+      return;
+    }
+
     const btn = $('#btnRunBacktest');
     btn.disabled = true;
     const st = $('#btState');
