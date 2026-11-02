@@ -249,6 +249,60 @@ input.disabled-input{opacity:.45;background:#f1f4f9;cursor:not-allowed}
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ---------- 头版：三个主板块入口 ---------- */
+.tabs{gap:10px}
+.tab{
+  border:1px solid var(--line);background:#fff;padding:12px 22px;border-radius:12px;cursor:pointer;
+  color:var(--ink2);font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;
+  transition:.18s;box-shadow:0 1px 2px rgba(15,23,42,.06);
+}
+.tab i{
+  font-style:normal;font-size:13px;width:22px;height:22px;border-radius:7px;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:#eef2f8;color:var(--muted);
+}
+.tab:hover{background:#f6f8fc;color:var(--ink);transform:translateY(-1px)}
+.tab.active{
+  background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;font-weight:700;
+  border-color:#1e40af;box-shadow:0 6px 16px rgba(37,99,235,.28);
+}
+.tab.active i{background:rgba(255,255,255,.22);color:#fff;opacity:1}
+
+/* ---------- 现金流统计 ---------- */
+.cf-card{margin-top:14px}
+.cf-layout{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start}
+.cf-seg{margin-bottom:14px}
+.cf-seg-hd{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;
+  color:var(--ink2);margin-bottom:8px}
+.cf-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.cf-dot.in{background:var(--up)}
+.cf-dot.out{background:var(--down)}
+.cf-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.cf-row{
+  display:grid;grid-template-columns:1fr 82px 82px;gap:7px;align-items:center;
+  padding:7px 9px;background:#f8fafc;border:1px solid var(--line);border-radius:8px;
+}
+.cf-row .cf-name{font-size:12.5px;color:var(--ink2);overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.cf-row input{
+  width:100%;padding:5px 7px;font-size:13px;text-align:right;
+  border:1px solid var(--line-strong);border-radius:6px;background:#fff;
+  font-variant-numeric:tabular-nums;
+}
+.cf-row input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-soft)}
+
+.cf-side{display:flex;flex-direction:column;gap:10px}
+.cf-big{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:14px 16px;text-align:right}
+.cf-big-label{display:block;font-size:12px;color:var(--muted)}
+.cf-big-val{display:block;font-size:26px;font-weight:700;letter-spacing:-.5px;
+  font-variant-numeric:tabular-nums;margin:3px 0 2px}
+.cf-big-val.up{color:var(--up)}
+.cf-big-val.down{color:var(--down)}
+.cf-big-sub{display:block;font-size:11px;color:var(--muted)}
+.cf-big.hero{background:linear-gradient(135deg,#1e3a8a,#2563eb);border-color:#1e40af}
+.cf-big.hero .cf-big-label,.cf-big.hero .cf-big-sub{color:rgba(255,255,255,.78)}
+.cf-big.hero .cf-big-val{color:#fff}
+
 /* ---------- 手机适配 ---------- */
 @media(max-width:760px){
   .wrap{padding:14px 12px 48px}
@@ -289,4 +343,12 @@ input.disabled-input{opacity:.45;background:#f1f4f9;cursor:not-allowed}
   .brow .wcell{gap:6px}
   .brow .wnum{min-width:58px}
   .catalog{max-height:none !important}
+
+  /* 现金流：输入单列，右侧三个大数字改成横排 */
+  .cf-layout{grid-template-columns:1fr}
+  .cf-grid{grid-template-columns:1fr}
+  .cf-row{grid-template-columns:1fr 76px 76px}
+  .cf-side{flex-direction:row;gap:8px}
+  .cf-big{flex:1;padding:10px 12px;text-align:center;min-width:0}
+  .cf-big-val{font-size:19px}
 }
