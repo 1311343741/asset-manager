@@ -36,9 +36,12 @@ window.AM = (function () {
 
   /* ---------- 存储 ---------- */
   const KEY = 'am.state.v1';
+  // 注意：load() 只回填这里已声明的 key。
+  // 新增任何持久化字段（如 cashflow）都必须先在这里登记，否则保存了却读不回来。
   const state = {
     assets: [],
     debts: [],
+    cashflow: {},    // 现金流：{ 分类名: 月金额 }，年 = 月 × 12
     basket: [],      // 回测/预测共用：{secid,name,weight}
     btParams: null,
     fcParams: null,
