@@ -25,6 +25,7 @@
     // 先备好离线快照：后端不可用（静态打开 / 服务未启动）时自动降级，功能不残缺
     await A.loadSnapshot();
     NetWorth.init();
+    Cashflow.init();
     Backtest.init();
     Forecast.init();
     A.probeSource();
