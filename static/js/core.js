@@ -41,7 +41,7 @@ window.AM = (function () {
   const state = {
     assets: [],
     debts: [],
-    cashflow: {},    // 现金流：{ 分类名: 月金额 }，年 = 月 × 12
+    cashflow: [],    // 现金流记录数组：{ id, name, cat, month }，年 = 月 × 12
     basket: [],      // 回测/预测共用：{secid,name,weight}
     btParams: null,
     fcParams: null,
