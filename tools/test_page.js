@@ -49,6 +49,11 @@ function post(path, body) {
     virtualConsole: vc,
     pretendToBeVisual: true,
     cookieJar: jar,
+    beforeParse(window) {
+      // jsdom 不实现 fetch，借用 Node 的全局 fetch，否则页面脚本会在这里中断
+      window.fetch = (...a) => fetch(...a);
+      window.Headers = Headers; window.Request = Request; window.Response = Response;
+    },
   });
 
   await new Promise(res => setTimeout(res, 10000));
@@ -61,9 +66,10 @@ function post(path, body) {
   console.log('落地页:', w.location.pathname, isLogin ? '← 仍是登录页!' : '');
 
   const checks = [
-    ['现金流入分类行', count('#cfInGrid .cf-row')],
-    ['现金流出分类行', count('#cfOutGrid .cf-row')],
-    ['回测资产池条目', count('.catalog .chip')],
+    ['现金流表格行', count('#tblCashflow tbody tr')],
+    ['添加现金流按钮', q('#btnCfAdd') ? 1 : 0],
+    ['分类下拉', count('#tblCashflow select')],
+    ['回测资产池条目', q('#catalog') ? q('#catalog').children.length : 0],
     ['回测开始按钮', q('#btnRunBacktest') ? 1 : 0],
     ['预测开始按钮', (q('#btnRunForecast') || q('#btnForecastRun')) ? 1 : 0],
   ];
