@@ -121,16 +121,23 @@
 
       <div class="cf-layout">
         <div class="cf-main">
-          <div class="cf-seg">
-            <div class="cf-seg-hd"><span class="cf-dot in"></span>流入（非投资收益）</div>
-            <div class="cf-grid" id="cfInGrid"></div>
-          </div>
-          <div class="cf-seg">
-            <div class="cf-seg-hd"><span class="cf-dot out"></span>流出（非投资开支）</div>
-            <div class="cf-grid" id="cfOutGrid"></div>
+          <div class="tbl-wrap">
+            <table class="tbl" id="tblCashflow">
+              <thead><tr>
+                <th>名称</th><th>分类（流入 / 流出）</th>
+                <th class="num">月金额</th><th class="num">年金额</th><th></th>
+              </tr></thead>
+              <tbody></tbody>
+              <tfoot><tr>
+                <td colspan="2">合计</td>
+                <td class="num" id="cfSumMonth">—</td>
+                <td class="num" id="cfSumYear">¥0</td><td></td>
+              </tr></tfoot>
+            </table>
           </div>
           <div class="row-actions">
-            <button class="btn" id="btnCfCalc">一键统计</button>
+            <button class="btn" id="btnCfAdd">+ 添加现金流</button>
+            <button class="btn ghost" id="btnCfCalc">一键统计</button>
             <button class="btn ghost" id="btnCfDemo">填入示例</button>
             <button class="btn danger-ghost" id="btnCfClear">清空现金流</button>
           </div>
