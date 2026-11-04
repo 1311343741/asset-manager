@@ -65,6 +65,11 @@ function post(path, body) {
   const isLogin = /login/i.test(w.location.pathname || '') || !!q('#btnLogin');
   console.log('落地页:', w.location.pathname, isLogin ? '← 仍是登录页!' : '');
 
+  // 模拟点击「添加现金流」，验证能生成带下拉的可编辑行
+  const cfAdd = q('#btnCfAdd');
+  if (cfAdd) cfAdd.click();
+  await new Promise(res => setTimeout(res, 300));
+
   const checks = [
     ['现金流表格行', count('#tblCashflow tbody tr')],
     ['添加现金流按钮', q('#btnCfAdd') ? 1 : 0],
