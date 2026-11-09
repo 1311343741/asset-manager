@@ -138,7 +138,7 @@ window.Forecast = (function () {
 
     for (let y = 1; y <= N; y++) {
       for (let k = 0; k < 12; k++) {
-        if (k % step === 0) { v += perAmount; invested += perAmount; }
+        if (freq !== 'none' && k % step === 0) { v += perAmount; invested += perAmount; }
         v *= (1 + monthly);
       }
       out.push({ year: y, value: v, invested, contrib: perAmount * freqOf(freq).times });
@@ -414,7 +414,7 @@ window.Forecast = (function () {
       const snap = [];
       for (let y = 0; y < N; y++) {
         for (let k = 0; k < 12; k++) {
-          if (k % step === 0) { v += annual; invested += annual; }   // 期初投入
+          if (contribMode !== 'none' && k % step === 0) { v += annual; invested += annual; }   // 期初投入
           let rm;
           if (method === 'boot' && bootMatrix) {
             const row = bootMatrix[Math.floor(rand() * bootMatrix.length)];
@@ -484,7 +484,7 @@ window.Forecast = (function () {
     out.push({ year: 0, value: base, invested });
     for (let y = 1; y <= N; y++) {
       for (let k = 0; k < 12; k++) {
-        if (k % step === 0) { base += annual; invested += annual; }
+        if (contribMode !== 'none' && k % step === 0) { base += annual; invested += annual; }
         base *= (1 + mm);
       }
       const t = y;
@@ -512,7 +512,7 @@ window.Forecast = (function () {
     const el = $('#fcContribHint');
     if (!el) return;
     const init = Number($('#fcInit').value) || 0;
-    const per = Number($('#fcAnnual').value) || 0;
+    const per = $('#fcContribMode').value === 'none' ? 0 : (Number($('#fcAnnual').value) || 0);
     const f = freqOf($('#fcContribMode').value);
     const yrs = Math.max(0, Number($('#fcYears').value) || 0);
     if (per <= 0) { el.textContent = '不追加投入'; return; }
@@ -715,7 +715,7 @@ window.Forecast = (function () {
   function run() {
     const init = Number($('#fcInit').value) || 0;
     const years = Number($('#fcYears').value) || 1;
-    const annual = Number($('#fcAnnual').value) || 0;
+    const annual = $('#fcContribMode').value === 'none' ? 0 : (Number($('#fcAnnual').value) || 0);
     const contribMode = $('#fcContribMode').value;
 
     if (mode === 'manual') {
@@ -808,7 +808,8 @@ window.Forecast = (function () {
       const off = f.value === 'none';
       a.disabled = off;
       a.classList.toggle('disabled-input', off);
-      if (hint) hint.textContent = off ? '当前：不定投，仅起始本金参与预测' : '';
+      if (off) a.value = '0';        // 不定投：金额归零
+      if (hint) hint.textContent = off ? '当前：不定投，仅起始本金参与预测' : '每期投入按组合权重比例分摊到各资产';
     };
     if ($('#fcContribMode')) { $('#fcContribMode').onchange = syncFc; syncFc(); }
 
