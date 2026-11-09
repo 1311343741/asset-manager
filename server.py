@@ -131,6 +131,8 @@ def _alt_symbol(secid):
             return 'sh' + code
         if market == '0':
             return 'sz' + code
+        if market == '116':
+            return 'hk' + code.zfill(5)
     return None
 
 
@@ -213,9 +215,11 @@ def fetch_kline(secid, klt=101, force=False, retry=3):
         if c and c.get("close"):
             return c
     stale = None if force else _read_cache(secid, klt, max_age_hours=CACHE_MAX_AGE_HOURS * 400)
+    fq = (_ALL_ITEMS.get(secid) or {}).get("fq", 1)
     url = ("https://push2his.eastmoney.com/api/qt/stock/kline/get?"
            "secid=%s&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f53&"
-           "klt=%s&fqt=1&beg=19700101&end=20501231&lmt=100000" % (urllib.parse.quote(secid), klt))
+           "klt=%s&fqt=%d&beg=19700101&end=20501231&lmt=100000"
+           % (urllib.parse.quote(secid), klt, fq))
     try:
         data = fetch_json(url, retry=retry)
     except Exception:
@@ -622,9 +626,25 @@ CATALOG = [
         {"secid": "1.511260", "name": "中长期债券（十年国债ETF）", "synth": "bond"},
         {"secid": "1.511090", "name": "30年国债ETF", "proxy": "1.511260"},
     ]},
+    {"group": "港股 · 龙头个股", "color": "#8b5cf6", "items": [
+        {"secid": "116.00700", "name": "腾讯控股", "synth": "tech", "fq": 2},
+        {"secid": "116.03690", "name": "美团-W", "synth": "tech", "fq": 2},
+        {"secid": "116.09988", "name": "阿里巴巴-W", "synth": "tech", "fq": 2},
+        {"secid": "116.01810", "name": "小米集团-W", "synth": "tech", "fq": 2},
+        {"secid": "116.09992", "name": "泡泡玛特", "synth": "consume", "fq": 2},
+        {"secid": "116.09626", "name": "哔哩哔哩-W", "synth": "tech", "fq": 2},
+    ]},
+    {"group": "A股 · 龙头个股", "color": "#e5484d", "items": [
+        {"secid": "1.600519", "name": "贵州茅台", "synth": "consume", "fq": 2},
+        {"secid": "0.300750", "name": "宁德时代", "synth": "newenergy", "fq": 2},
+        {"secid": "0.000858", "name": "五粮液", "synth": "consume", "fq": 2},
+        {"secid": "1.600036", "name": "招商银行", "synth": "fin", "fq": 2},
+        {"secid": "1.601318", "name": "中国平安", "synth": "fin", "fq": 2},
+        {"secid": "0.002594", "name": "比亚迪", "synth": "newenergy", "fq": 2},
+        {"secid": "0.000333", "name": "美的集团", "synth": "consume", "fq": 2},
+        {"secid": "1.600900", "name": "长江电力", "synth": "broadETF", "fq": 2},
+    ]},
     {"group": "现金类（无行情，按固定利率）", "color": "#64748b", "items": [
-        # 现金本身不产生收益；活期按 0.3% 计；存款/货基按近三十年中枢设定，
-        # 设定后固定下来，只在后台调整，不随行情变动。
         {"secid": "CASH", "name": "现金", "fixed": 0.0},
         {"secid": "DEMAND", "name": "活期存款", "fixed": 0.3},
         {"secid": "DEP1", "name": "定期存款 / 大额存单", "fixed": 3.0},
