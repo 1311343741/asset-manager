@@ -476,7 +476,7 @@ window.Backtest = (function () {
         const cfg = {
           init: Number($('#btInit').value) || 0,
           dcaFreq: $('#btDcaFreq').value,
-          dcaAmt: Number($('#btDcaAmt').value) || 0,
+          dcaAmt: $('#btDcaFreq').value === 'none' ? 0 : (Number($('#btDcaAmt').value) || 0),
           rebal: $('#btRebal').value,
         };
 
@@ -726,6 +726,7 @@ window.Backtest = (function () {
       const off = f.value === 'none';
       a.disabled = off;
       a.classList.toggle('disabled-input', off);
+      if (off) a.value = '0';        // 不定投：金额归零，避免仍被计入
       if (hint) {
         hint.textContent = off
           ? '当前：不定投，仅一次性买入'
