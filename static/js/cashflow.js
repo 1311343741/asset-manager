@@ -107,6 +107,12 @@ window.Cashflow = (function () {
       const tdM = document.createElement('td'); tdM.appendChild(iM);
       const tdY = document.createElement('td'); tdY.appendChild(iY);
 
+      // 占总现金流比例（由 calc 统一刷新）
+      const tdPct = document.createElement('td');
+      tdPct.className = 'num';
+      tdPct.setAttribute('data-cf-pct', r.id);
+      tdPct.textContent = '—';
+
       // 删除
       const tdDel = document.createElement('td');
       const b = document.createElement('button');
@@ -119,14 +125,14 @@ window.Cashflow = (function () {
       };
       tdDel.appendChild(b);
 
-      tr.append(tdName, tdCat, tdM, tdY, tdDel);
+      tr.append(tdName, tdCat, tdM, tdY, tdPct, tdDel);
       frag.appendChild(tr);
     });
 
     if (!list.length) {
       const tr = document.createElement('tr');
       const td = document.createElement('td');
-      td.colSpan = 5;
+      td.colSpan = 6;
       td.style.cssText = 'color:#9aa5b6;text-align:center;padding:14px';
       td.textContent = '暂无记录，点击「+ 添加现金流」';
       tr.appendChild(td); frag.appendChild(tr);
@@ -151,6 +157,15 @@ window.Cashflow = (function () {
     set('#cfNetSub', '全年盈余 · 月均 ' + A.fmtMoney(inc - exp));
     set('#cfSumMonth', A.fmtMoney(inc - exp));
     set('#cfSumYear', A.fmtMoney(yNet));
+
+    // 每笔占总现金流（流入 + 流出）的比例
+    const total = inc + exp;
+    document.querySelectorAll('#tblCashflow [data-cf-pct]').forEach(el => {
+      const rec = rows().find(x => x.id === el.getAttribute('data-cf-pct'));
+      const m = rec ? (Number(rec.month) || 0) : 0;
+      el.textContent = total > 0 ? (m / total * 100).toFixed(1) + '%' : '—';
+    });
+    set('#cfSumPct', total > 0 ? '100.0%' : '—');
 
     A.save();
     return { inc, exp, yIn, yOut, yNet };
