@@ -99,35 +99,20 @@ window.Review = (function () {
         return i;
       };
 
-      /* 日期：文本框可直接键入 YYYY-MM-DD，右侧日历按钮用原生选择器选日期。
-         两者双向同步，非法输入在失焦时回退到上一次的有效值。 */
+      /* 日期：只保留一个原生日期栏。
+         手动输入被限定为 年 / 月 / 日 三段，也可点日历图标选择；
+         不再放纯文本框，也不再有多余的空白小方块。 */
       const validDate = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '') && isFinite(ms(s));
-      const dateBox = (key, title) => {
-        const box = document.createElement('div');
-        box.className = 'rv-datebox';
-
-        const txt = document.createElement('input');
-        txt.type = 'text'; txt.className = 'rv-datetext';
-        txt.placeholder = 'YYYY-MM-DD'; txt.value = r[key] || '';
-        txt.setAttribute('aria-label', title + '（可手动输入）');
-
-        const pick = document.createElement('input');
-        pick.type = 'date'; pick.className = 'rv-datepick';
-        pick.title = title + '（点此选择日期）';
-        pick.setAttribute('aria-label', title + '（点此选择日期）');
-        if (validDate(r[key])) pick.value = r[key];
-
-        txt.oninput = () => {
-          const v = txt.value.trim();
-          if (validDate(v)) { r[key] = v; pick.value = v; A.save(); }
-        };
-        txt.onblur = () => { if (!validDate(txt.value.trim())) txt.value = r[key] || ''; };
-        pick.onchange = () => {
-          if (pick.value) { r[key] = pick.value; txt.value = pick.value; A.save(); }
-        };
-
-        box.append(txt, pick);
-        return box;
+      const dateInput = (key, title) => {
+        const i = document.createElement('input');
+        i.type = 'date'; i.className = 'rv-date';
+        i.title = title + '（可键入年月日，或点日历选择）';
+        i.setAttribute('aria-label', title);
+        if (validDate(r[key])) i.value = r[key];
+        const sync = () => { if (validDate(i.value)) { r[key] = i.value; A.save(); } };
+        i.oninput = sync;    // 分段键入
+        i.onchange = sync;   // 日历选择
+        return i;
       };
 
       const bDel = document.createElement('button');
@@ -140,9 +125,9 @@ window.Review = (function () {
 
       tr.append(
         cell(iName),
-        cell(dateBox('start', '投资起始日期')),
+        cell(dateInput('start', '投资起始日期')),
         cell(moneyInput('amount')),
-        cell(dateBox('end', '结算时间')),
+        cell(dateInput('end', '结算时间')),
         cell(moneyInput('final')),
         cell(bDel)
       );
@@ -293,12 +278,12 @@ window.Review = (function () {
           '<td class="num">' + (contrib * 100).toFixed(1) + '%</td></tr>';
       }).join('') +
         '<tr class="rv-total"><td colspan="2"><b>合计</b></td>' +
-        '<td class="num"><b>' + A.fmtFull(R.invested) + '</b></td><td></td>' +
-        '<td class="num"><b>' + A.fmtFull(R.finalVal) + '</b></td><td></td>' +
+        '<td class="num"><b>' + A.fmtFull(R.invested) + '</b></td><td class="num">—</td>' +
+        '<td class="num"><b>' + A.fmtFull(R.finalVal) + '</b></td><td class="num">—</td>' +
         '<td class="num ' + signCls(R.net) + '"><b>' + money(R.net) + '</b></td>' +
         '<td class="num ' + signCls(R.totalRet) + '"><b>' + pct(R.totalRet) + '</b></td>' +
         '<td class="num ' + signCls(R.totalAnn) + '"><b>' + (R.totalAnn <= -1 ? '—' : pct(R.totalAnn)) + '</b></td>' +
-        '<td></td></tr>';
+        '<td class="num">—</td></tr>';
     }
 
     // 图 1：各资产净盈亏（红盈绿亏）
