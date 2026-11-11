@@ -56,7 +56,7 @@ function post(path, body) {
     },
   });
 
-  await new Promise(res => setTimeout(res, 10000));
+  await new Promise(res => setTimeout(res, 20000));
 
   const w = dom.window, d = w.document;
   const q = s => d.querySelector(s);
@@ -70,7 +70,17 @@ function post(path, body) {
   if (cfAdd) cfAdd.click();
   await new Promise(res => setTimeout(res, 300));
 
+  // 交互：选「不定投」后，回测与预测的定投金额都应自动归零
+  const btF = q('#btDcaFreq'), fcF = q('#fcContribMode');
+  const Ev = w.Event;
+  if (btF) { btF.value = 'none'; btF.dispatchEvent(new Ev('change')); }
+  if (fcF) { fcF.value = 'none'; fcF.dispatchEvent(new Ev('change')); }
+  await new Promise(res => setTimeout(res, 200));
+
   const checks = [
+    ['回测定投金额归零', (q('#btDcaAmt') && q('#btDcaAmt').value === '0') ? 1 : 0],
+    ['预测定投金额归零', (q('#fcAnnual') && q('#fcAnnual').value === '0') ? 1 : 0],
+    ['占总现金流列', count('#tblCashflow [data-cf-pct]')],
     ['现金流表格行', count('#tblCashflow tbody tr')],
     ['添加现金流按钮', q('#btnCfAdd') ? 1 : 0],
     ['分类下拉', count('#tblCashflow select')],
