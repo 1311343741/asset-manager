@@ -72,28 +72,63 @@ window.Review = (function () {
         td.appendChild(child);
         return td;
       };
-      const inp = (type, val, ph, step) => {
+
+      const iName = document.createElement('input');
+      iName.type = 'text'; iName.value = r.name || ''; iName.placeholder = '资产名称';
+      iName.oninput = () => { r.name = iName.value; A.save(); };
+
+      /* 金额：纯文本框，没有上下调节按钮；允许粘贴 "100,000" 这类写法。
+         输入过程中只更新数据、不回写 value，避免光标被顶到末尾（老坑）。
+         失焦时才把规范化后的值写回。 */
+      const moneyInput = (key) => {
         const i = document.createElement('input');
-        i.type = type; i.value = val == null ? '' : val; i.placeholder = ph || '';
-        if (step) i.step = step;
-        if (type === 'number') { i.min = '0'; i.className = 'num'; }
+        i.type = 'text'; i.inputMode = 'decimal'; i.className = 'num rv-money';
+        i.value = r[key] == null ? '' : String(r[key]);
+        i.placeholder = '0';
+        const parse = s => {
+          const t = String(s == null ? '' : s).replace(/[,，\s¥￥]/g, '');
+          if (!/^-?\d*\.?\d*$/.test(t) || t === '' || t === '-' || t === '.') return null;
+          const n = parseFloat(t);
+          return isFinite(n) ? Math.max(0, n) : null;
+        };
+        i.oninput = () => {
+          const v = parse(i.value);
+          if (v !== null) { r[key] = v; A.save(); }
+        };
+        i.onblur = () => { i.value = String(r[key]); };
         return i;
       };
 
-      const iName = inp('text', r.name, '资产名称');
-      iName.oninput = () => { r.name = iName.value; A.save(); };
+      /* 日期：文本框可直接键入 YYYY-MM-DD，右侧日历按钮用原生选择器选日期。
+         两者双向同步，非法输入在失焦时回退到上一次的有效值。 */
+      const validDate = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '') && isFinite(ms(s));
+      const dateBox = (key, title) => {
+        const box = document.createElement('div');
+        box.className = 'rv-datebox';
 
-      const iStart = inp('date', r.start);
-      iStart.onchange = () => { r.start = iStart.value; A.save(); };
+        const txt = document.createElement('input');
+        txt.type = 'text'; txt.className = 'rv-datetext';
+        txt.placeholder = 'YYYY-MM-DD'; txt.value = r[key] || '';
+        txt.setAttribute('aria-label', title + '（可手动输入）');
 
-      const iAmt = inp('number', r.amount, '', '1000');
-      iAmt.oninput = () => { r.amount = num(iAmt.value); A.save(); };
+        const pick = document.createElement('input');
+        pick.type = 'date'; pick.className = 'rv-datepick';
+        pick.title = title + '（点此选择日期）';
+        pick.setAttribute('aria-label', title + '（点此选择日期）');
+        if (validDate(r[key])) pick.value = r[key];
 
-      const iEnd = inp('date', r.end);
-      iEnd.onchange = () => { r.end = iEnd.value; A.save(); };
+        txt.oninput = () => {
+          const v = txt.value.trim();
+          if (validDate(v)) { r[key] = v; pick.value = v; A.save(); }
+        };
+        txt.onblur = () => { if (!validDate(txt.value.trim())) txt.value = r[key] || ''; };
+        pick.onchange = () => {
+          if (pick.value) { r[key] = pick.value; txt.value = pick.value; A.save(); }
+        };
 
-      const iFinal = inp('number', r.final, '', '1000');
-      iFinal.oninput = () => { r.final = num(iFinal.value); A.save(); };
+        box.append(txt, pick);
+        return box;
+      };
 
       const bDel = document.createElement('button');
       bDel.className = 'del'; bDel.textContent = '×'; bDel.title = '删除';
@@ -103,7 +138,14 @@ window.Review = (function () {
         render(); A.save();
       };
 
-      tr.append(cell(iName), cell(iStart), cell(iAmt), cell(iEnd), cell(iFinal), cell(bDel));
+      tr.append(
+        cell(iName),
+        cell(dateBox('start', '投资起始日期')),
+        cell(moneyInput('amount')),
+        cell(dateBox('end', '结算时间')),
+        cell(moneyInput('final')),
+        cell(bDel)
+      );
       frag.appendChild(tr);
     });
 
