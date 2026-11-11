@@ -82,6 +82,34 @@ const checks = [
   ['状态=分析完成', state.includes('分析完成'), state],
 ];
 
+// --- 新增控件交互检查（放在数值校验之后，避免改动示例数据影响上面的结果）---
+const moneyInputs = d.querySelectorAll('#tblReview .rv-money');
+const dateTexts = d.querySelectorAll('#tblReview .rv-datetext');
+const datePicks = d.querySelectorAll('#tblReview .rv-datepick');
+checks.push(['金额框为纯文本无调节按钮', moneyInputs.length === 8 && Array.from(moneyInputs).every(i => i.type === 'text'), moneyInputs.length + ' 个']);
+checks.push(['日期可手输文本框', dateTexts.length === 8, dateTexts.length + ' 个']);
+checks.push(['日期日历选择按钮', datePicks.length === 8, datePicks.length + ' 个']);
+
+const fire = (el, type) => el.dispatchEvent(new w.Event(type, { bubbles: true }));
+moneyInputs[0].value = '123,456';
+fire(moneyInputs[0], 'input');
+checks.push(['金额手输含千分位被正确解析', w.AM.state.reviewRows[0].amount === 123456, w.AM.state.reviewRows[0].amount]);
+
+dateTexts[0].value = '2020-03-08';
+fire(dateTexts[0], 'input');
+checks.push(['日期手输生效', w.AM.state.reviewRows[0].start === '2020-03-08', w.AM.state.reviewRows[0].start]);
+checks.push(['手输日期同步日历控件', datePicks[0].value === '2020-03-08', datePicks[0].value]);
+
+datePicks[0].value = '2021-07-01';
+fire(datePicks[0], 'change');
+checks.push(['日历选择同步文本框', dateTexts[0].value === '2021-07-01' && w.AM.state.reviewRows[0].start === '2021-07-01', dateTexts[0].value]);
+
+const before = w.AM.state.reviewRows[0].start;
+dateTexts[0].value = '乱写';
+fire(dateTexts[0], 'input');
+fire(dateTexts[0], 'blur');
+checks.push(['非法日期失焦回退', dateTexts[0].value === before, dateTexts[0].value]);
+
 console.log('--- 投资回顾计算实测 ---');
 let bad = 0;
 checks.forEach(([l, ok, ex]) => { if (!ok) bad++; console.log('  ' + (ok ? '✓' : '✗') + ' ' + l + (ex ? '  [' + ex + ']' : '')); });
