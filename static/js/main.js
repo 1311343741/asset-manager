@@ -16,7 +16,7 @@
       t.onclick = () => switchTab(t.dataset.tab);
     });
     const h = (location.hash || '').replace('#', '');
-    if (['worth', 'backtest', 'forecast'].indexOf(h) >= 0) switchTab(h);
+    if (['worth', 'backtest', 'forecast', 'review'].indexOf(h) >= 0) switchTab(h);
   }
 
   document.addEventListener('DOMContentLoaded', async () => {
@@ -26,7 +26,7 @@
     // 快照加载失败绝不能阻断后面的初始化，否则整页功能全废
     try { await A.loadSnapshot(); } catch (e) { console.warn('[快照] 加载失败，继续初始化:', e); }
     // 逐个 try：任一模块自己出错，不该连带把其余板块全部拖挂
-    [['资产现状', NetWorth], ['现金流', Cashflow], ['历史回测', Backtest], ['未来预测', Forecast]]
+    [['资产现状', NetWorth], ['现金流', Cashflow], ['历史回测', Backtest], ['未来预测', Forecast], ['投资回顾', Review]]
       .forEach(function (pair) {
         try { pair[1].init(); }
         catch (e) { console.error('[' + pair[0] + '] 初始化失败:', e); }
