@@ -70,7 +70,8 @@ function post(path, body) {
   await new Promise(res => setTimeout(res, 250));
   push('示例记录行数', count('#tblReview tbody tr'));
   push('金额纯文本框(无调节按钮)', count('#tblReview .rv-money'), '应为 8');
-  push('日历选择按钮', count('#tblReview .rv-datepick'), '应为 8');
+  push('原生日期栏', count('#tblReview .rv-date'), '应为 8');
+  push('无多余空白方块', count('#tblReview .rv-datepick') === 0 ? 1 : 0);
 
   const run = q('#btnRvAnalyze');
   if (run) run.click();
