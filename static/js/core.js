@@ -42,6 +42,7 @@ window.AM = (function () {
     assets: [],
     debts: [],
     cashflow: [],    // 现金流记录数组：{ id, name, cat, month }，年 = 月 × 12
+    reviewRows: [],  // 投资回顾记录：{ id, name, start, amount, end, final }
     basket: [],      // 回测/预测共用：{secid,name,weight}
     btParams: null,
     fcParams: null,
