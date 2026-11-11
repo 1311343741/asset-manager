@@ -21,6 +21,7 @@
     <button class="tab active" data-tab="worth">资产现状</button>
     <button class="tab" data-tab="backtest">历史回测</button>
     <button class="tab" data-tab="forecast">未来预测</button>
+    <button class="tab" data-tab="review">投资回顾</button>
   </nav>
   <div class="topright">
     <span class="dot" id="netDot"></span>
@@ -413,6 +414,72 @@
       <div class="kpis mini mt" id="fcKpis"></div>
     </div>
   </section>
+
+  <!-- ===================== 投资回顾 ===================== -->
+  <section class="page" id="page-review">
+    <div class="card">
+      <div class="card-hd">
+        <h3>投资回顾</h3>
+        <span class="hint">只看起点与终点，不算过程与定投 · 数据保存在本机浏览器</span>
+      </div>
+      <div class="rv-note">
+        为每项资产填写「投入日期 + 投入金额」和「结算日期 + 截止金额」，点「一键分析」即可得到
+        总投入、最终资产、净盈亏、盈亏比例、年化收益率与资金加权收益率。
+        <b>年化口径</b>：单项按各自持有期复利年化；总资产按「最早投入日 ~ 最晚结算日」的整体区间复利年化。
+      </div>
+
+      <div class="tbl-wrap">
+        <table class="tbl rv-table" id="tblReview">
+          <thead><tr>
+            <th>资产名称</th><th>投资起始日期</th><th class="num">初始投资金额 (¥)</th>
+            <th>结算时间</th><th class="num">截止金额 (¥)</th><th></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="row-actions">
+        <button class="btn" id="btnRvAdd">+ 添加资产</button>
+        <button class="btn" id="btnRvAnalyze">一键分析</button>
+        <button class="btn ghost" id="btnRvDemo">填入示例</button>
+        <button class="btn danger-ghost" id="btnRvClear">清空</button>
+        <span class="runstate" id="rvState"></span>
+      </div>
+    </div>
+
+    <div class="card" id="rvResultCard" hidden>
+      <div class="card-hd"><h3>分析结果</h3><span class="hint">红色为盈利 / 绿色为亏损</span></div>
+
+      <div class="kpis rv-kpis" id="rvKpis"></div>
+
+      <div class="rv-concl" id="rvConcl"></div>
+
+      <div class="sub-hd mt">各项资产明细</div>
+      <div class="tbl-wrap">
+        <table class="tbl" id="tblReviewResult">
+          <thead><tr>
+            <th>资产</th><th>起始日</th><th class="num">投入</th><th>结算日</th><th class="num">截止</th>
+            <th class="num">持有(年)</th><th class="num">净盈亏</th><th class="num">盈亏比例</th>
+            <th class="num">年化收益率</th><th class="num">盈亏贡献</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="grid2 mt">
+        <div><div class="sub-hd">各资产净盈亏</div><div id="chartReviewPnl" class="chart h280"></div></div>
+        <div><div class="sub-hd">总盈亏比例 与 年化收益率</div><div id="chartReviewAnn" class="chart h280"></div></div>
+      </div>
+
+      <div class="rv-note mt">
+        <b>指标说明</b>：
+        ① <b>总资产年化</b>按用户指定口径，用最早投入日到最晚结算日的整体区间对「总投入→最终资产」做复利年化，
+        未考虑各笔资金进出时点差异；如需考虑资金时间价值，请参考旁边的 <b>XIRR</b>。
+        ② <b>XIRR</b>把每笔投入记为现金流出、每笔结算金额记为流入，按实际日期求资金加权年化收益率。
+        ③ <b>盈亏贡献</b>=该项净盈亏 ÷ 各项净盈亏绝对值之和，可正可负，反映单项对整体结果的拉动方向。
+        ④ 截止金额为 0（本金归零）时年化记为 —，不做 -100% 的复利外推。
+      </div>
+    </div>
+  </section>
 </main>
 
 <div class="toast" id="toast"></div>
@@ -423,6 +490,7 @@
 <script src="js/backtest.js"></script>
 <script src="js/forecast.js"></script>
 <script src="js/cashflow.js"></script>
+<script src="js/review.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
