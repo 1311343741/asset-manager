@@ -127,14 +127,15 @@
               <thead><tr>
                 <th>名称</th><th>分类（流入 / 流出）</th>
                 <th class="num">月金额</th><th class="num">年金额</th>
-                <th class="num">占总现金流</th><th></th>
+                <th class="num">占收入比</th><th class="num">占支出比</th><th></th>
               </tr></thead>
               <tbody></tbody>
               <tfoot><tr>
                 <td colspan="2">合计</td>
                 <td class="num" id="cfSumMonth">—</td>
                 <td class="num" id="cfSumYear">¥0</td>
-                <td class="num" id="cfSumPct">100%</td><td></td>
+                <td class="num" id="cfSumInPct">100%</td>
+                <td class="num" id="cfSumOutPct">100%</td><td></td>
               </tr></tfoot>
             </table>
           </div>
@@ -161,6 +162,16 @@
             <span class="cf-big-label">净现金流</span>
             <span class="cf-big-val" id="cfNet">¥0</span>
             <span class="cf-big-sub" id="cfNetSub">全年盈余 · 月均 ¥0</span>
+          </div>
+
+          <div class="cf-time">
+            <div class="cf-time-hd">按净现金流折算<span>全年 365.25 天 · 每天 24 小时</span></div>
+            <div class="cf-time-grid">
+              <div><span>平均每天</span><b class="cf-time-val" id="cfPerDay">¥0</b></div>
+              <div><span>每小时</span><b class="cf-time-val" id="cfPerHour">¥0</b></div>
+              <div><span>每分钟</span><b class="cf-time-val" id="cfPerMin">¥0</b></div>
+              <div><span>每秒钟</span><b class="cf-time-val" id="cfPerSec">¥0</b></div>
+            </div>
           </div>
         </div>
       </div>
