@@ -396,3 +396,23 @@ input.disabled-input{opacity:.45;background:#f1f4f9;cursor:not-allowed}
 @media(max-width:760px){
   .rv-table input.rv-date{min-width:132px}
 }
+
+
+/* ---------- 现金流：收支分栏占比 + 净现金流时间折算 ---------- */
+.cf-time{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.cf-time-hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+  font-size:12.5px;font-weight:600;color:var(--ink2);margin-bottom:9px}
+.cf-time-hd span{font-size:10.5px;font-weight:400;color:var(--muted)}
+.cf-time-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 12px}
+.cf-time-grid>div{display:flex;flex-direction:column;gap:2px;padding:7px 9px;
+  background:#f8fafc;border:1px solid var(--line);border-radius:8px}
+.cf-time-grid span{font-size:11px;color:var(--muted)}
+.cf-time-val{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink)}
+.cf-time-val.pos{color:var(--up)}
+.cf-time-val.neg{color:var(--down)}
+.cf-pct-in{color:var(--up)}
+.cf-pct-out{color:var(--down)}
+@media(max-width:760px){
+  .cf-time-grid{grid-template-columns:repeat(2,1fr)}
+  .cf-time{padding:10px 12px}
+}
