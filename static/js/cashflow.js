@@ -107,11 +107,15 @@ window.Cashflow = (function () {
       const tdM = document.createElement('td'); tdM.appendChild(iM);
       const tdY = document.createElement('td'); tdY.appendChild(iY);
 
-      // 占总现金流比例（由 calc 统一刷新）
-      const tdPct = document.createElement('td');
-      tdPct.className = 'num';
-      tdPct.setAttribute('data-cf-pct', r.id);
-      tdPct.textContent = '—';
+      // 收入 / 支出占比分两栏，各自单独计算（数值由 calc 统一刷新）
+      const tdInPct = document.createElement('td');
+      tdInPct.className = 'num cf-pct-in';
+      tdInPct.setAttribute('data-cf-in-pct', r.id);
+      tdInPct.textContent = '—';
+      const tdOutPct = document.createElement('td');
+      tdOutPct.className = 'num cf-pct-out';
+      tdOutPct.setAttribute('data-cf-out-pct', r.id);
+      tdOutPct.textContent = '—';
 
       // 删除
       const tdDel = document.createElement('td');
@@ -125,14 +129,14 @@ window.Cashflow = (function () {
       };
       tdDel.appendChild(b);
 
-      tr.append(tdName, tdCat, tdM, tdY, tdPct, tdDel);
+      tr.append(tdName, tdCat, tdM, tdY, tdInPct, tdOutPct, tdDel);
       frag.appendChild(tr);
     });
 
     if (!list.length) {
       const tr = document.createElement('tr');
       const td = document.createElement('td');
-      td.colSpan = 6;
+      td.colSpan = 7;
       td.style.cssText = 'color:#9aa5b6;text-align:center;padding:14px';
       td.textContent = '暂无记录，点击「+ 添加现金流」';
       tr.appendChild(td); frag.appendChild(tr);
@@ -158,14 +162,42 @@ window.Cashflow = (function () {
     set('#cfSumMonth', A.fmtMoney(inc - exp));
     set('#cfSumYear', A.fmtMoney(yNet));
 
-    // 每笔占总现金流（流入 + 流出）的比例
-    const total = inc + exp;
-    document.querySelectorAll('#tblCashflow [data-cf-pct]').forEach(el => {
-      const rec = rows().find(x => x.id === el.getAttribute('data-cf-pct'));
-      const m = rec ? (Number(rec.month) || 0) : 0;
-      el.textContent = total > 0 ? (m / total * 100).toFixed(1) + '%' : '—';
-    });
-    set('#cfSumPct', total > 0 ? '100.0%' : '—');
+    // 占比：收入与支出分开算，各自以「本类合计」为分母，另一栏显示 —
+    const list = rows();
+    const fillPct = (attr, denom, wantIncome) => {
+      document.querySelectorAll('#tblCashflow [data-' + attr + ']').forEach(el => {
+        const rec = list.find(x => x.id === el.getAttribute('data-' + attr));
+        if (!rec) return;
+        const m = Number(rec.month) || 0;
+        const mine = wantIncome ? isIn(rec.cat) : !isIn(rec.cat);
+        el.textContent = (mine && denom > 0) ? (m / denom * 100).toFixed(1) + '%' : '—';
+      });
+    };
+    fillPct('cf-in-pct', inc, true);
+    fillPct('cf-out-pct', exp, false);
+    set('#cfSumInPct', inc > 0 ? '100.0%' : '—');
+    set('#cfSumOutPct', exp > 0 ? '100.0%' : '—');
+
+    // 净现金流按时间折算：年净额 → 日 → 时 → 分 → 秒
+    // 秒级金额很小，按量级动态给小数位，避免一律显示 ¥0.00
+    const fmtTiny = v => {
+      const a = Math.abs(v);
+      if (a === 0) return '¥0';
+      const t = a >= 1000 ? a.toFixed(0)
+        : a >= 1 ? a.toFixed(2)
+          : a >= 0.01 ? a.toFixed(4) : a.toFixed(6);
+      return (v < 0 ? '-¥' : '¥') + t;
+    };
+    const perDay = yNet / 365.25;
+    [['#cfPerDay', perDay], ['#cfPerHour', perDay / 24],
+     ['#cfPerMin', perDay / 1440], ['#cfPerSec', perDay / 86400]]
+      .forEach(pair => {
+        const e = $(pair[0]);
+        if (e) {
+          e.textContent = fmtTiny(pair[1]);
+          e.className = 'cf-time-val ' + (pair[1] > 0 ? 'pos' : (pair[1] < 0 ? 'neg' : ''));
+        }
+      });
 
     A.save();
     return { inc, exp, yIn, yOut, yNet };
