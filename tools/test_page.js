@@ -68,6 +68,8 @@ function post(path, body) {
   // 模拟点击「添加现金流」，验证能生成带下拉的可编辑行
   const cfAdd = q('#btnCfAdd');
   if (cfAdd) cfAdd.click();
+  const cfDemo = q('#btnCfDemo');
+  if (cfDemo) cfDemo.click();
   await new Promise(res => setTimeout(res, 300));
 
   // 交互：选「不定投」后，回测与预测的定投金额都应自动归零
@@ -78,9 +80,15 @@ function post(path, body) {
   await new Promise(res => setTimeout(res, 200));
 
   const checks = [
+    ['收入占比合计 100%', (q('#cfSumInPct') && q('#cfSumInPct').textContent === '100.0%') ? 1 : 0],
+    ['支出占比合计 100%', (q('#cfSumOutPct') && q('#cfSumOutPct').textContent === '100.0%') ? 1 : 0],
+    ['每天折算 ¥497.74', (q('#cfPerDay') && q('#cfPerDay').textContent === '¥497.74') ? 1 : 0],
+    ['每秒折算非 ¥0', (q('#cfPerSec') && q('#cfPerSec').textContent !== '¥0') ? 1 : 0],
     ['回测定投金额归零', (q('#btDcaAmt') && q('#btDcaAmt').value === '0') ? 1 : 0],
     ['预测定投金额归零', (q('#fcAnnual') && q('#fcAnnual').value === '0') ? 1 : 0],
-    ['占总现金流列', count('#tblCashflow [data-cf-pct]')],
+    ['占收入比栏', count('#tblCashflow [data-cf-in-pct]')],
+    ['占支出比栏', count('#tblCashflow [data-cf-out-pct]')],
+    ['净现金流时间折算区', (q('#cfPerDay') && q('#cfPerSec')) ? 1 : 0],
     ['现金流表格行', count('#tblCashflow tbody tr')],
     ['添加现金流按钮', q('#btnCfAdd') ? 1 : 0],
     ['分类下拉', count('#tblCashflow select')],
