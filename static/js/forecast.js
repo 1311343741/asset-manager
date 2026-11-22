@@ -42,6 +42,58 @@ window.Forecast = (function () {
   }
 
   /* ---------------- 手动模式 ---------------- */
+  /* 本金输入框：可手动键入、无上下调节按钮。
+     输入过程中只更新数据并重算，不回写自身 value，避免光标被打断。 */
+  function moneyCell(r, after) {
+    const i = document.createElement('input');
+    i.type = 'text'; i.inputMode = 'decimal'; i.className = 'num fc-capital';
+    i.value = (Number(r.capital) || 0) ? String(r.capital) : '';
+    i.placeholder = '本金';
+    const parse = v => {
+      const t = String(v == null ? '' : v).replace(/[,，\s¥￥]/g, '');
+      if (!/^\d*\.?\d*$/.test(t) || t === '' || t === '.') return null;
+      const n = parseFloat(t);
+      return isFinite(n) ? n : null;
+    };
+    i.oninput = () => {
+      const v = parse(i.value);
+      r.capital = v === null ? 0 : v;
+      after();
+    };
+    i.onblur = () => { i.value = String(Number(r.capital) || 0); };
+    return i;
+  }
+
+  // 顶部总本金 = 当前模式各项本金之和（只读，机器计算）。
+  // 当前模式一行都没有时（例如默认的手动假设页是空表），借用另一模式的合计，
+  // 否则一打开页面本金就被算成 0。
+  function syncInitFromRows() {
+    let list = (mode === 'manual') ? manualRows : machineRows;
+    if (!list.length) list = (mode === 'manual') ? machineRows : manualRows;
+    const total = list.reduce((s, r) => s + (Number(r.capital) || 0), 0);
+    const el = $('#fcInit');
+    if (el) el.value = Math.round(total);
+    const echo = $('#fcStartEcho');
+    if (echo) echo.textContent = A.fmtMoney(total);
+    return total;
+  }
+
+  // 权重 = 该项本金 / 总本金，机器计算，输入框只读
+  function recalcWeights() {
+    [['Manual', manualRows], ['Machine', machineRows]].forEach(function (pair) {
+      const suffix = pair[0], list = pair[1];
+      const total = list.reduce((s, r) => s + (Number(r.capital) || 0), 0);
+      list.forEach(r => {
+        r.weight = total > 0 ? (Number(r.capital) || 0) / total * 100 : 0;
+        const el = document.querySelector('#tbl' + suffix + ' [data-fc-w="' + r.id + '"]');
+        if (el) el.value = total > 0 ? r.weight.toFixed(2) + '%' : '—';
+      });
+    });
+    syncInitFromRows();
+    updateManualSum();
+    updateMachineSum();
+  }
+
   function renderManual() {
     const tb = $('#tblManual tbody');
     if (!tb) return;
@@ -55,10 +107,15 @@ window.Forecast = (function () {
       inp.oninput = () => { r.name = inp.value; const f = findByName(r.name); if (f) r.secid = f.secid; };
       td1.appendChild(inp);
 
+      const tdCap = document.createElement('td');
+      tdCap.appendChild(moneyCell(r, recalcWeights));
+
       const td2 = document.createElement('td');
       const iw = document.createElement('input');
-      iw.type = 'number'; iw.className = 'num'; iw.value = r.weight; iw.min = '0'; iw.max = '100'; iw.step = '1';
-      iw.oninput = () => { r.weight = Number(iw.value) || 0; updateManualSum(); };
+      iw.type = 'text'; iw.className = 'num fc-wauto'; iw.readOnly = true;
+      iw.setAttribute('data-fc-w', r.id);
+      iw.value = (Number(r.weight) || 0).toFixed(2) + '%';
+      iw.title = '权重由各项起始本金自动计算，无需手填';
       td2.appendChild(iw);
 
       const td3 = document.createElement('td');
@@ -83,16 +140,18 @@ window.Forecast = (function () {
       del.onclick = () => { manualRows = manualRows.filter(x => x.id !== r.id); renderManual(); };
       td5.appendChild(del);
 
-      tr.append(td1, td2, td3, td4, td5);
+      tr.append(td1, tdCap, td2, td3, td4, td5);
       tb.appendChild(tr);
     });
     if (!manualRows.length) {
-      tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9aa5b6;padding:14px">暂无资产，点击下方「+ 添加资产」或「沿用回测组合」</td></tr>';
+      tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9aa5b6;padding:14px">暂无资产，点击下方「+ 添加资产」或「沿用回测组合」</td></tr>';
     }
-    updateManualSum();
+    recalcWeights();
   }
 
   function updateManualSum() {
+    const mCap = $('#mCapitalSum');
+    if (mCap) mCap.textContent = A.fmtMoney(manualRows.reduce((t, r) => t + (Number(r.capital) || 0), 0));
     const ws = manualRows.reduce((s, r) => s + (Number(r.weight) || 0), 0);
     const wAvg = ws > 0 ? manualRows.reduce((s, r) => s + r.weight * r.ret, 0) / ws : 0;
     $('#mWeightSum').textContent = ws.toFixed(0) + '%';
@@ -101,8 +160,7 @@ window.Forecast = (function () {
   }
 
   function addManualRow(data) {
-    manualRows.push(Object.assign({ id: nid(), name: '', secid: '', weight: 0, ret: 5 }, data || {}));
-    if (manualRows.length === 1) manualRows[0].weight = 100;
+    manualRows.push(Object.assign({ id: nid(), name: '', secid: '', weight: 0, capital: 10000, ret: 5 }, data || {}));
     renderManual();
   }
 
@@ -184,10 +242,15 @@ window.Forecast = (function () {
       };
       td1.appendChild(sel);
 
+      const tdCap = document.createElement('td');
+      tdCap.appendChild(moneyCell(r, recalcWeights));
+
       const td2 = document.createElement('td');
       const iw = document.createElement('input');
-      iw.type = 'number'; iw.className = 'num'; iw.value = r.weight; iw.min = '0'; iw.max = '100'; iw.step = '1';
-      iw.oninput = () => { r.weight = Number(iw.value) || 0; updateMachineSum(); };
+      iw.type = 'text'; iw.className = 'num fc-wauto'; iw.readOnly = true;
+      iw.setAttribute('data-fc-w', r.id);
+      iw.value = (Number(r.weight) || 0).toFixed(2) + '%';
+      iw.title = '权重由各项起始本金自动计算，无需手填';
       td2.appendChild(iw);
 
       const td3 = document.createElement('td');
@@ -215,16 +278,18 @@ window.Forecast = (function () {
       del.onclick = () => { machineRows = machineRows.filter(x => x.id !== r.id); renderMachine(); };
       td6.appendChild(del);
 
-      tr.append(td1, td2, td3, td4, td5, td6);
+      tr.append(td1, tdCap, td2, td3, td4, td5, td6);
       tb.appendChild(tr);
     });
     if (!machineRows.length) {
-      tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9aa5b6;padding:14px">暂无资产，点击「+ 添加资产」或「沿用回测组合」</td></tr>';
+      tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9aa5b6;padding:14px">暂无资产，点击「+ 添加资产」或「沿用回测组合」</td></tr>';
     }
-    updateMachineSum();
+    recalcWeights();
   }
 
   function updateMachineSum() {
+    const cCap = $('#cCapitalSum');
+    if (cCap) cCap.textContent = A.fmtMoney(machineRows.reduce((t, r) => t + (Number(r.capital) || 0), 0));
     const ws = machineRows.reduce((s, r) => s + (Number(r.weight) || 0), 0) || 1;
     const mu = machineRows.reduce((s, r) => s + (r.weight / ws) * ((r.mu || 0) + (r.adj || 0)), 0);
     const sg = machineRows.reduce((s, r) => s + (r.weight / ws) * (r.sigma || 0), 0);
@@ -238,16 +303,11 @@ window.Forecast = (function () {
     const it = flatItems().find(x => x.secid === (secid || '1.000300')) || flatItems()[0];
     const s = statsCache[it.secid];
     machineRows.push({
-      id: nid(), secid: it.secid, name: it.name, weight: 0,
+      id: nid(), secid: it.secid, name: it.name, weight: 0, capital: 10000,
       mu: it.fixed !== undefined ? it.fixed : (s ? +(s.mu * 100).toFixed(2) : null),
       sigma: it.fixed !== undefined ? 0 : (s ? +(s.sigma * 100).toFixed(2) : null),
       adj: 0, fixed: it.fixed !== undefined,
     });
-    const ws = machineRows.reduce((a, b) => a + b.weight, 0);
-    if (ws <= 0) {
-      const eq = +(100 / machineRows.length).toFixed(2);
-      machineRows.forEach(r => r.weight = eq);
-    }
     renderMachine();
   }
 
@@ -768,8 +828,21 @@ window.Forecast = (function () {
 
   /* ---------------- 外部接口 ---------------- */
   function setInitial(v) {
-    $('#fcInit').value = Math.round(v);
-    $('#fcStartEcho').textContent = A.fmtMoney(v);
+    // 起始本金由各项资产本金合计而来，带入净资产需分摊到每一行
+    const list = (mode === 'manual') ? manualRows : machineRows;
+    if (!list.length) {
+      addManualRow({ name: '我的资产', capital: Math.round(v), ret: 6 });
+    } else {
+      const total = list.reduce((s, r) => s + (Number(r.capital) || 0), 0);
+      if (total > 0) {
+        list.forEach(r => { r.capital = Math.round((Number(r.capital) || 0) / total * v); });
+      } else {
+        const each = Math.round(v / list.length);
+        list.forEach(r => { r.capital = each; });
+      }
+    }
+    renderManual(); renderMachine();
+    A.toast('已按各资产本金比例分摊 ' + A.fmtMoney(v));
   }
 
   function adopt(btResult) {
@@ -784,11 +857,13 @@ window.Forecast = (function () {
     }
     if (!rows.length) { A.toast('暂无可用组合'); return; }
     // 手动：默认年化用回测年化
+    const base = Number($('#fcInit').value) || 100000;
     manualRows = rows.map(r => ({
       id: nid(), name: r.name, secid: r.secid, weight: r.weight,
+      capital: Math.round(base * r.weight / 100),
       ret: +(Math.max(-15, Math.min(25, r.cagr * 100))).toFixed(1),
     }));
-    machineRows = rows.map(r => ({ id: nid(), name: r.name, secid: r.secid, weight: r.weight, mu: null, sigma: null, adj: 0, fixed: isFixedId(r.secid) }));
+    machineRows = rows.map(r => ({ id: nid(), name: r.name, secid: r.secid, weight: r.weight, capital: Math.round(base * r.weight / 100), mu: null, sigma: null, adj: 0, fixed: isFixedId(r.secid) }));
     renderManual(); renderMachine();
     pullStats();
   }
@@ -818,6 +893,7 @@ window.Forecast = (function () {
         $$('#fcMode .seg').forEach(x => x.classList.remove('active'));
         s.classList.add('active');
         mode = s.dataset.mode;
+        syncInitFromRows();
         $('#pane-manual').classList.toggle('active', mode === 'manual');
         $('#pane-machine').classList.toggle('active', mode === 'machine');
         const yi = $('#fcYears');
@@ -856,7 +932,7 @@ window.Forecast = (function () {
       el.onclick = () => {
         manualRows = presets[k].map(x => {
           const it = findByName(x[0]);
-          return { id: nid(), name: x[0], secid: it ? it.secid : '', weight: x[1], ret: defaultRet(x[0]) };
+          return { id: nid(), name: x[0], secid: it ? it.secid : '', weight: x[1], capital: Math.round((Number($('#fcInit').value) || 100000) * x[1] / 100), ret: defaultRet(x[0]) };
         });
         renderManual();
         A.toast('已套用预设');
@@ -886,6 +962,7 @@ window.Forecast = (function () {
         addMachineRow('100.SPX');
         addMachineRow('1.518880');
         addMachineRow('1.511260');
+        machineRows.forEach(r => { r.capital = 25000; });   // 默认合计 10 万
       }
       renderMachine();
     });
