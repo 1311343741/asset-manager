@@ -325,7 +325,7 @@
       </div>
 
       <div class="form-grid">
-        <label class="fld"><span>起始本金 (¥)</span><input type="number" id="fcInit" value="100000" step="10000" min="0" /></label>
+        <label class="fld"><span>起始本金 (¥) <em class="fc-auto-tag">自动合计</em></span><input type="text" id="fcInit" value="100000" readonly title="由下方各项资产的起始本金自动合计，无需手填" /></label>
         <label class="fld" id="fcYearsFld"><span>预测年数（不限）</span><input type="number" id="fcYears" value="10" min="1" /></label>
         <label class="fld"><span>每次投入金额 (¥)</span><input type="number" id="fcAnnual" value="5000" step="1000" min="0" /><small class="fld-hint" id="fcContribHint"></small></label>
         <label class="fld"><span>投入频率</span>
@@ -345,9 +345,9 @@
         </div>
         <div class="tbl-wrap">
           <table class="tbl" id="tblManual">
-            <thead><tr><th>资产</th><th style="width:14%">权重 %</th><th style="width:34%">预期年化涨幅 %</th><th style="width:16%">区间示例</th><th style="width:44px"></th></tr></thead>
+            <thead><tr><th>资产</th><th style="width:17%">起始本金 ¥</th><th style="width:13%">权重 %<span class="fc-auto-tag">自动</span></th><th style="width:29%">预期年化涨幅 %</th><th style="width:15%">区间示例</th><th style="width:44px"></th></tr></thead>
             <tbody></tbody>
-            <tfoot><tr><td>合计</td><td class="num" id="mWeightSum">0%</td><td class="num" id="mReturnAvg">—</td><td colspan="2"></td></tr></tfoot>
+            <tfoot><tr><td>合计</td><td class="num" id="mCapitalSum">¥0</td><td class="num" id="mWeightSum">0%</td><td class="num" id="mReturnAvg">—</td><td colspan="2"></td></tr></tfoot>
           </table>
         </div>
         <div class="row-actions wrap-actions">
@@ -402,9 +402,9 @@
         </div>
         <div class="tbl-wrap">
           <table class="tbl" id="tblMachine">
-            <thead><tr><th>资产</th><th style="width:12%">权重 %</th><th style="width:16%">年化收益 μ</th><th style="width:14%">波动率 σ</th><th style="width:16%">手动微调 μ(%)</th><th style="width:44px"></th></tr></thead>
+            <thead><tr><th>资产</th><th style="width:15%">起始本金 ¥</th><th style="width:12%">权重 %<span class="fc-auto-tag">自动</span></th><th style="width:14%">年化收益 μ</th><th style="width:12%">波动率 σ</th><th style="width:15%">手动微调 μ(%)</th><th style="width:44px"></th></tr></thead>
             <tbody></tbody>
-            <tfoot><tr><td>合计</td><td class="num" id="cWeightSum">0%</td><td class="num" id="cReturnAvg">—</td><td class="num" id="cVolAvg">—</td><td colspan="2"></td></tr></tfoot>
+            <tfoot><tr><td>合计</td><td class="num" id="cCapitalSum">¥0</td><td class="num" id="cWeightSum">0%</td><td class="num" id="cReturnAvg">—</td><td class="num" id="cVolAvg">—</td><td colspan="2"></td></tr></tfoot>
           </table>
         </div>
       </div>
