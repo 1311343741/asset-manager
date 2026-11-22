@@ -80,6 +80,8 @@ function post(path, body) {
   await new Promise(res => setTimeout(res, 200));
 
   const checks = [
+    ['预测总本金只读(自动合计)', (q('#fcInit') && q('#fcInit').readOnly) ? 1 : 0],
+    ['预测权重自动计算', count('#tblMachine .fc-wauto') > 0 ? 1 : 0],
     ['收入占比合计 100%', (q('#cfSumInPct') && q('#cfSumInPct').textContent === '100.0%') ? 1 : 0],
     ['支出占比合计 100%', (q('#cfSumOutPct') && q('#cfSumOutPct').textContent === '100.0%') ? 1 : 0],
     ['每天折算 ¥497.74', (q('#cfPerDay') && q('#cfPerDay').textContent === '¥497.74') ? 1 : 0],
